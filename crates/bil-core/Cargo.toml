@@ -1,0 +1,12 @@
+[package]
+name = "bil-core"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "Shared primitives, IDs, errors, traits for BIL SDK"
+
+[dependencies]
+serde.workspace = true
+thiserror.workspace = true

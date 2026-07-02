@@ -1,0 +1,18 @@
+[package]
+name = "bankabil"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "Python bindings for BIL SDK"
+
+[lib]
+name = "bankabil"
+crate-type = ["cdylib"]
+
+[dependencies]
+bil-core = { path = "../crates/bil-core" }
+bil-sdk = { path = "../crates/bil-sdk" }
+bil-verify = { path = "../crates/bil-verify" }
+pyo3 = { version = "0.20", features = ["extension-module"] }

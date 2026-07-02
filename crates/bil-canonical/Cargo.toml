@@ -1,0 +1,14 @@
+[package]
+name = "bil-canonical"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "Canonical encoding for BIL SDK"
+
+[dependencies]
+bil-core = { path = "../bil-core" }
+serde.workspace = true
+thiserror.workspace = true
+sha2.workspace = true

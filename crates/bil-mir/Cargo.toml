@@ -1,0 +1,14 @@
+[package]
+name = "bil-mir"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "Institutional event graph for BIL SDK"
+
+[dependencies]
+bil-core = { path = "../bil-core" }
+bil-replay = { path = "../bil-replay" }
+serde.workspace = true
+thiserror.workspace = true

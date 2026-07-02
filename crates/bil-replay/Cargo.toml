@@ -1,0 +1,14 @@
+[package]
+name = "bil-replay"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "Deterministic replay model for BIL SDK"
+
+[dependencies]
+bil-core = { path = "../bil-core" }
+bil-canonical = { path = "../bil-canonical" }
+serde.workspace = true
+thiserror.workspace = true

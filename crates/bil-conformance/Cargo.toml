@@ -1,0 +1,13 @@
+[package]
+name = "bil-conformance"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "Test vectors, profile gates, compatibility suite for BIL SDK"
+
+[dependencies]
+bil-core = { path = "../bil-core" }
+serde.workspace = true
+thiserror.workspace = true

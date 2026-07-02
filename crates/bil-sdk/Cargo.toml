@@ -1,0 +1,18 @@
+[package]
+name = "bil-sdk"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "Ergonomic Rust SDK capability layer for BIL SDK"
+
+[dependencies]
+bil-core = { path = "../bil-core" }
+bil-mir = { path = "../bil-mir" }
+bil-ink = { path = "../bil-ink" }
+bil-verify = { path = "../bil-verify" }
+bil-explain = { path = "../bil-explain" }
+bil-mock = { path = "../bil-mock" }
+serde.workspace = true
+thiserror.workspace = true
