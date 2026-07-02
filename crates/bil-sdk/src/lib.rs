@@ -59,13 +59,45 @@ impl AssuranceMemo {
     }
 }
 
-pub struct DoctorReport;
+pub struct DoctorReport {
+    pub is_healthy: bool,
+    pub messages: Vec<String>,
+}
 
 pub trait VerificationInput {}
 
-pub struct MockBuilder;
+pub struct MockBuilder {
+    profile: SyntheticProfile,
+    seed: Option<u64>,
+}
 
-pub struct IssuedArtifact;
+impl MockBuilder {
+    pub fn with_seed(mut self, seed: u64) -> Self {
+        self.seed = Some(seed);
+        self
+    }
+
+    pub fn build(self) -> Result<BilMirGraph, BilError> {
+        match self.profile {
+            SyntheticProfile::BankBranch => {
+                let config = bil_mock::BankBranchSyntheticConfig {
+                    seed: self.seed.unwrap_or(0),
+                    branch_id: "branch-001".to_string(),
+                    include_ai_assist: true,
+                    include_human_review: true,
+                    include_adverse_action: false,
+                    signer_level: bil_core::AssuranceLevel::L0SoftwareDev,
+                };
+                Ok(bil_mock::generate_bank_branch_mock(&config))
+            }
+            _ => Err(BilError::Failed("Profile not yet supported".to_string())),
+        }
+    }
+}
+
+pub struct IssuedArtifact {
+    pub receipt: InkReceipt,
+}
 
 impl Bil {
     pub fn demo(profile: DemoProfile) -> Result<DemoRun, BilError> {
@@ -73,7 +105,10 @@ impl Bil {
     }
 
     pub fn doctor() -> Result<DoctorReport, BilError> {
-        Ok(DoctorReport)
+        Ok(DoctorReport {
+            is_healthy: true,
+            messages: vec!["BIL SDK core is healthy".to_string()],
+        })
     }
 
     pub fn verify(_input: impl VerificationInput) -> Result<VerificationReport, BilError> {
@@ -90,12 +125,15 @@ impl Bil {
         bil_explain::explain(report)
     }
 
-    pub fn mock(_profile: SyntheticProfile) -> MockBuilder {
-        MockBuilder
+    pub fn mock(profile: SyntheticProfile) -> MockBuilder {
+        MockBuilder {
+            profile,
+            seed: None,
+        }
     }
 
     pub fn issue(_graph: BilMirGraph, _capability: CapabilityCode) -> Result<IssuedArtifact, BilError> {
-        Ok(IssuedArtifact)
+        Err(BilError::Failed("Not implemented".to_string()))
     }
 }
 

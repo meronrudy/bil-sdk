@@ -12,3 +12,6 @@ bil-core = { path = "../bil-core" }
 bil-ink = { path = "../bil-ink" }
 serde.workspace = true
 thiserror.workspace = true
+ed25519-dalek = { version = "2.2.0", features = ["rand_core"] }
+rand = "0.8"
+hex = "0.4.3"

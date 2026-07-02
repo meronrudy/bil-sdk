@@ -1,10 +1,89 @@
 {
   "graph_id": "mock-graph-2026",
   "profile": "bank_branch",
-  "events": [],
-  "evidence": [],
-  "authorities": [],
-  "policies": [],
+  "events": [
+    {
+      "id": "evt-2026-1",
+      "kind": "BankBranchIntakeStarted"
+    },
+    {
+      "id": "evt-2026-2",
+      "kind": "ConsentCaptured"
+    },
+    {
+      "id": "evt-2026-3",
+      "kind": "DocumentReceived"
+    },
+    {
+      "id": "evt-2026-ai",
+      "kind": "ModelInvoked"
+    },
+    {
+      "id": "evt-2026-review",
+      "kind": "HumanReviewed"
+    },
+    {
+      "id": "evt-2026-decision",
+      "kind": "DecisionIssued"
+    }
+  ],
+  "evidence": [
+    {
+      "id": "evd-2026-doc1"
+    },
+    {
+      "id": "evd-2026-ai-summary"
+    }
+  ],
+  "authorities": [
+    {
+      "id": "auth-2026-teller",
+      "edge": {
+        "actor": "teller-001",
+        "system": "branch-001",
+        "role": "BranchTeller",
+        "scope": "intake",
+        "policy_ref": "pol-intake-v1",
+        "valid_from_ms": 1672531200000,
+        "valid_until_ms": null
+      }
+    },
+    {
+      "id": "auth-2026-ai",
+      "edge": {
+        "actor": "ai-assistant-v2",
+        "system": "cloud-llm",
+        "role": "Assistant",
+        "scope": "summarization",
+        "policy_ref": "pol-ai-v2",
+        "valid_from_ms": 1672531200000,
+        "valid_until_ms": null
+      }
+    },
+    {
+      "id": "auth-2026-manager",
+      "edge": {
+        "actor": "manager-001",
+        "system": "branch-001",
+        "role": "BranchManager",
+        "scope": "review",
+        "policy_ref": "pol-review-v1",
+        "valid_from_ms": 1672531200000,
+        "valid_until_ms": null
+      }
+    }
+  ],
+  "policies": [
+    {
+      "id": "pol-intake-v1"
+    },
+    {
+      "id": "pol-ai-v2"
+    },
+    {
+      "id": "pol-review-v1"
+    }
+  ],
   "replay": {
     "initial_state_hash": [
       0,
