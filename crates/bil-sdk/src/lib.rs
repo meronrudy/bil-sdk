@@ -35,20 +35,27 @@ impl DemoRun {
         })
     }
 
-    pub fn receipt(&self) -> InkReceipt {
-        unimplemented!()
+    pub fn receipt(&self) -> Result<InkReceipt, BilError> {
+        // Placeholder for generating a receipt from a demo run
+        Err(BilError::Failed("Not implemented".to_string()))
     }
 
-    pub fn memo(&self) -> AssuranceMemo {
-        unimplemented!()
+    pub fn memo(&self) -> Result<AssuranceMemo, BilError> {
+        // Placeholder for generating a memo from a demo run
+        Ok(AssuranceMemo {
+            markdown: "# Assurance Memo\n\nThis is a placeholder memo.".to_string(),
+        })
     }
 }
 
-pub struct AssuranceMemo;
+pub struct AssuranceMemo {
+    pub markdown: String,
+}
 
 impl AssuranceMemo {
-    pub fn write_markdown(&self, _path: &str) -> Result<(), BilError> {
-        Ok(())
+    pub fn write_markdown(&self, path: &str) -> Result<(), BilError> {
+        std::fs::write(path, &self.markdown)
+            .map_err(|e| BilError::Failed(format!("Failed to write memo: {}", e)))
     }
 }
 

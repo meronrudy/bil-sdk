@@ -12,3 +12,8 @@ bil-core = { path = "../bil-core" }
 serde.workspace = true
 thiserror.workspace = true
 sha2.workspace = true
+ciborium = "0.2.2"
+hex = "0.4.3"
+serde_json.workspace = true
+chrono = "0.4.45"
+base64 = "0.22.1"

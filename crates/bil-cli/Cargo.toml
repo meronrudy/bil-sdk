@@ -10,5 +10,7 @@ description = "Command-line interface for BIL SDK"
 [dependencies]
 bil-core = { path = "../bil-core" }
 bil-mir = { path = "../bil-mir" }
+bil-mock = { path = "../bil-mock" }
 anyhow.workspace = true
+serde_json.workspace = true
 clap = { version = "4.6.1", features = ["derive"] }
