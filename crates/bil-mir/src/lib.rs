@@ -2,6 +2,8 @@ use bil_core::{ActorRef, AuthorityRef, BilId, EventId, EvidenceRef, PolicyRef, P
 use bil_replay::ReplayState;
 use serde::{Deserialize, Serialize};
 
+use bil_canonical::{BilCanonical, BilValue, CanonicalError};
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct BilMirGraph {
     pub graph_id: BilId,
@@ -60,4 +62,14 @@ pub struct AuthorityNode {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PolicyNode {
     pub id: PolicyRef,
+}
+
+impl BilCanonical for BilMirGraph {
+    fn to_canonical_value(&self) -> Result<BilValue, CanonicalError> {
+        // For now, we just serialize to JSON and then to BilValue
+        // In a real implementation, we would map the struct fields directly to BilValue
+        let json = serde_json::to_value(self)
+            .map_err(|e| CanonicalError::Encoding(e.to_string()))?;
+        BilValue::try_from(&json)
+    }
 }

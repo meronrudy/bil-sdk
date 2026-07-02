@@ -1,4 +1,3 @@
-use bil_core::BilStatus;
 use bil_explain::DiagnosticExplanation;
 use bil_ink::{CapabilityCode, InkReceipt};
 use bil_mir::BilMirGraph;
@@ -26,18 +25,15 @@ pub struct DemoRun {
 
 impl DemoRun {
     pub fn verify(&self) -> Result<VerificationReport, BilError> {
-        Ok(VerificationReport {
-            status: BilStatus::Pass,
-            receipt_id: None,
-            profile: None,
-            checks: vec![],
-            findings: vec![],
-        })
+        let receipt = self.receipt()?;
+        Bil::verify(&receipt)
     }
 
     pub fn receipt(&self) -> Result<InkReceipt, BilError> {
-        // Placeholder for generating a receipt from a demo run
-        Err(BilError::Failed("Not implemented".to_string()))
+        let builder = Bil::mock(SyntheticProfile::BankBranch).with_seed(2026);
+        let graph = builder.build()?;
+        let artifact = Bil::issue(graph, bil_ink::CapabilityCode("demo.receipt".to_string()))?;
+        Ok(artifact.receipt)
     }
 
     pub fn memo(&self) -> Result<AssuranceMemo, BilError> {
@@ -111,14 +107,8 @@ impl Bil {
         })
     }
 
-    pub fn verify(_input: impl VerificationInput) -> Result<VerificationReport, BilError> {
-        Ok(VerificationReport {
-            status: BilStatus::Pass,
-            receipt_id: None,
-            profile: None,
-            checks: vec![],
-            findings: vec![],
-        })
+    pub fn verify(receipt: &InkReceipt) -> Result<VerificationReport, BilError> {
+        Ok(bil_verify::VerificationEngine::verify_receipt(receipt))
     }
 
     pub fn explain(report: &VerificationReport) -> DiagnosticExplanation {
@@ -132,8 +122,61 @@ impl Bil {
         }
     }
 
-    pub fn issue(_graph: BilMirGraph, _capability: CapabilityCode) -> Result<IssuedArtifact, BilError> {
-        Err(BilError::Failed("Not implemented".to_string()))
+    pub fn issue(graph: BilMirGraph, capability: CapabilityCode) -> Result<IssuedArtifact, BilError> {
+        use bil_canonical::BilCanonical;
+        use bil_core::ReceiptId;
+        use bil_ink::{IssuerRef, SubjectRef};
+        use bil_signers::{BilSigner, SoftwareDevSigner};
+
+        // 1. Hash the MIR graph
+        let mir_commitment = graph
+            .commitment_hash()
+            .map_err(|e| BilError::Failed(format!("Failed to hash MIR graph: {}", e)))?;
+
+        // 2. Create a signer
+        let signer = SoftwareDevSigner::new("sdk-issuer-001".to_string());
+
+        // 3. Construct the receipt envelope
+        let mut receipt = InkReceipt {
+            receipt_id: ReceiptId(format!("rcpt-{}", uuid::Uuid::new_v4())),
+            capability,
+            profile: graph.profile.clone(),
+            issuer: IssuerRef("sdk-issuer-001".to_string()),
+            subject: SubjectRef("subject-001".to_string()),
+            mir_commitment,
+            evidence_root: None, // TODO: Merkle tree
+            event_refs: graph.events.iter().map(|e| e.id.clone()).collect(),
+            authority_refs: graph.authorities.iter().map(|a| a.id.clone()).collect(),
+            policy_refs: graph.policies.iter().map(|p| p.id.clone()).collect(),
+            canonical_commitment: bil_canonical::Hash256([0; 32]), // Placeholder, will be updated
+            signer: signer.signer_id(),
+            signature: bil_ink::SignatureBytes(vec![]), // Placeholder
+            timestamp_ms: std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .unwrap()
+                .as_millis() as i64,
+            assurance_level: signer.assurance_level(),
+        };
+
+        // 4. Hash the receipt envelope (excluding signature)
+        // For now, we just serialize the receipt to JSON and hash that as a placeholder
+        // In a real implementation, we would have a specific canonical representation for the receipt
+        let receipt_json = serde_json::to_value(&receipt).unwrap();
+        let receipt_bil_value = bil_canonical::BilValue::try_from(&receipt_json).unwrap();
+        let canonical_commitment = bil_canonical::encode_canonical(&receipt_bil_value)
+            .map(|bytes| bil_canonical::Hash256::sha256(&bytes))
+            .map_err(|e| BilError::Failed(format!("Failed to hash receipt: {}", e)))?;
+        
+        receipt.canonical_commitment = canonical_commitment.clone();
+
+        // 5. Sign the commitment
+        let signature = signer
+            .sign(&canonical_commitment.0)
+            .map_err(|e| BilError::Failed(format!("Failed to sign receipt: {}", e)))?;
+        
+        receipt.signature = signature;
+
+        Ok(IssuedArtifact { receipt })
     }
 }
 

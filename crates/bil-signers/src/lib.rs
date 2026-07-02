@@ -41,6 +41,47 @@ pub trait BilSignatureVerifier {
     ) -> Result<(), SignatureError>;
 }
 
+pub struct SoftwareDevSignatureVerifier;
+
+impl BilSignatureVerifier for SoftwareDevSignatureVerifier {
+    fn verify_signature(
+        &self,
+        public_key: &PublicKeyRef,
+        canonical_bytes: &[u8],
+        signature: &SignatureBytes,
+    ) -> Result<(), SignatureError> {
+        use ed25519_dalek::{Signature, Verifier, VerifyingKey};
+
+        // Decode public key from hex
+        let pk_bytes = hex::decode(&public_key.0)
+            .map_err(|e| SignatureError::Failed(format!("Invalid public key hex: {}", e)))?;
+        
+        if pk_bytes.len() != 32 {
+            return Err(SignatureError::Failed("Invalid public key length".to_string()));
+        }
+
+        let mut pk_array = [0u8; 32];
+        pk_array.copy_from_slice(&pk_bytes);
+        
+        let verifying_key = VerifyingKey::from_bytes(&pk_array)
+            .map_err(|e| SignatureError::Failed(format!("Invalid public key: {}", e)))?;
+
+        // Decode signature
+        if signature.0.len() != 64 {
+            return Err(SignatureError::Failed("Invalid signature length".to_string()));
+        }
+
+        let mut sig_array = [0u8; 64];
+        sig_array.copy_from_slice(&signature.0);
+        let sig = Signature::from_bytes(&sig_array);
+
+        // Verify
+        verifying_key
+            .verify(canonical_bytes, &sig)
+            .map_err(|e| SignatureError::Failed(format!("Signature verification failed: {}", e)))
+    }
+}
+
 pub struct SoftwareDevSigner {
     signer_id: SignerRef,
     keypair: ed25519_dalek::SigningKey,

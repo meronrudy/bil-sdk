@@ -10,5 +10,8 @@ description = "Verification engine for BIL SDK"
 [dependencies]
 bil-core = { path = "../bil-core" }
 bil-ink = { path = "../bil-ink" }
+bil-canonical = { path = "../bil-canonical" }
+bil-signers = { path = "../bil-signers" }
 serde.workspace = true
+serde_json.workspace = true
 thiserror.workspace = true

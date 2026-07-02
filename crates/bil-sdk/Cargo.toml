@@ -10,9 +10,13 @@ description = "Ergonomic Rust SDK capability layer for BIL SDK"
 [dependencies]
 bil-core = { path = "../bil-core" }
 bil-mir = { path = "../bil-mir" }
-bil-ink = { path = "../bil-ink" }
+bil-mock = { path = "../bil-mock" }
 bil-verify = { path = "../bil-verify" }
 bil-explain = { path = "../bil-explain" }
-bil-mock = { path = "../bil-mock" }
+bil-ink = { path = "../bil-ink" }
+bil-canonical = { path = "../bil-canonical" }
+bil-signers = { path = "../bil-signers" }
 serde.workspace = true
 thiserror.workspace = true
+uuid = { version = "1.23.4", features = ["v4"] }
+serde_json.workspace = true

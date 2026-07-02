@@ -98,7 +98,16 @@ fn main() {
             }
         }
         Commands::Issue { capability, mir_file } => {
-            println!("Issuing {} from {}", capability, mir_file);
+            let json = fs::read_to_string(&mir_file).unwrap();
+            let graph: bil_mir::BilMirGraph = serde_json::from_str(&json).unwrap();
+            let artifact = bil_sdk::Bil::issue(graph, bil_ink::CapabilityCode(capability.clone())).unwrap();
+            
+            // Write canonical CBOR
+            let cbor_path = mir_file.replace(".mir.json", ".ink.cbor");
+            // For now, we just write JSON as a placeholder since we don't have a full CBOR serializer for the receipt yet
+            let receipt_json = serde_json::to_string_pretty(&artifact.receipt).unwrap();
+            fs::write(&cbor_path, &receipt_json).unwrap();
+            println!("Issued receipt to {}", cbor_path);
         }
         Commands::Verify { receipt_file, pretty } => {
             println!("Verifying receipt: {} (pretty: {})", receipt_file, pretty);
