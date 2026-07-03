@@ -15,3 +15,4 @@ bil-signers = { path = "../bil-signers" }
 serde.workspace = true
 serde_json.workspace = true
 thiserror.workspace = true
+hex = "0.4.3"

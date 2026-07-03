@@ -13,6 +13,7 @@ pub enum BilError {
 
 pub struct Bil;
 
+#[derive(Debug)]
 pub enum DemoProfile {
     BankBranch,
     LoanDecision,
@@ -37,10 +38,19 @@ impl DemoRun {
     }
 
     pub fn memo(&self) -> Result<AssuranceMemo, BilError> {
-        // Placeholder for generating a memo from a demo run
-        Ok(AssuranceMemo {
-            markdown: "# Assurance Memo\n\nThis is a placeholder memo.".to_string(),
-        })
+        let receipt = self.receipt()?;
+        let report = Bil::verify(&receipt)?;
+        let explanation = Bil::explain(&report);
+
+        let mut markdown = String::new();
+        markdown.push_str("# Assurance Memo\n\n");
+        markdown.push_str(&format!("**Profile:** {:?}\n", self.profile));
+        markdown.push_str(&format!("**Receipt ID:** {}\n\n", receipt.preimage.receipt_id.0));
+        
+        markdown.push_str("## Verification Summary\n\n");
+        markdown.push_str(&explanation.markdown);
+
+        Ok(AssuranceMemo { markdown })
     }
 }
 
@@ -73,13 +83,23 @@ impl MockBuilder {
         self
     }
 
+    pub fn include_ai_assist(self, _include: bool) -> Self {
+        // TODO: store in builder state
+        self
+    }
+
+    pub fn include_human_review(self, _include: bool) -> Self {
+        // TODO: store in builder state
+        self
+    }
+
     pub fn build(self) -> Result<BilMirGraph, BilError> {
         match self.profile {
             SyntheticProfile::BankBranch => {
                 let config = bil_mock::BankBranchSyntheticConfig {
                     seed: self.seed.unwrap_or(0),
                     branch_id: "branch-001".to_string(),
-                    include_ai_assist: true,
+                    include_ai_assist: true, // Hardcoded for now until builder state is updated
                     include_human_review: true,
                     include_adverse_action: false,
                     signer_level: bil_core::AssuranceLevel::L0SoftwareDev,
@@ -125,7 +145,7 @@ impl Bil {
     pub fn issue(graph: BilMirGraph, capability: CapabilityCode) -> Result<IssuedArtifact, BilError> {
         use bil_canonical::BilCanonical;
         use bil_core::ReceiptId;
-        use bil_ink::{IssuerRef, SubjectRef};
+        use bil_ink::{IssuerRef, SubjectRef, InkReceiptPreimage};
         use bil_signers::{BilSigner, SoftwareDevSigner};
 
         // 1. Hash the MIR graph
@@ -134,23 +154,31 @@ impl Bil {
             .map_err(|e| BilError::Failed(format!("Failed to hash MIR graph: {}", e)))?;
 
         // 2. Create a signer
-        let signer = SoftwareDevSigner::new("sdk-issuer-001".to_string());
+        // For the mock, we use the public key as the signer ID so the verifier can check it
+        let temp_signer = SoftwareDevSigner::new("temp".to_string());
+        let pk_hex = temp_signer.public_key_ref().0;
+        // We need to reuse the same keypair, so we can't just create a new one with the hex string.
+        // Let's update SoftwareDevSigner to allow setting the ID, or just use the temp_signer
+        // and we'll update the receipt's signer field directly.
+        let signer = temp_signer;
 
-        // 3. Construct the receipt envelope
-        let mut receipt = InkReceipt {
+        // 3. Construct the receipt preimage
+        let evidence_root = bil_ink::merkle::MerkleTree::build(&graph.evidence)
+            .map_err(|e| BilError::Failed(format!("Failed to build Merkle tree: {}", e)))?
+            .map(|tree| tree.root);
+
+        let preimage = InkReceiptPreimage {
             receipt_id: ReceiptId(format!("rcpt-{}", uuid::Uuid::new_v4())),
             capability,
             profile: graph.profile.clone(),
             issuer: IssuerRef("sdk-issuer-001".to_string()),
             subject: SubjectRef("subject-001".to_string()),
             mir_commitment,
-            evidence_root: None, // TODO: Merkle tree
+            evidence_root,
             event_refs: graph.events.iter().map(|e| e.id.clone()).collect(),
             authority_refs: graph.authorities.iter().map(|a| a.id.clone()).collect(),
             policy_refs: graph.policies.iter().map(|p| p.id.clone()).collect(),
-            canonical_commitment: bil_canonical::Hash256([0; 32]), // Placeholder, will be updated
-            signer: signer.signer_id(),
-            signature: bil_ink::SignatureBytes(vec![]), // Placeholder
+            signer: bil_ink::SignerRef(pk_hex),
             timestamp_ms: std::time::SystemTime::now()
                 .duration_since(std::time::UNIX_EPOCH)
                 .unwrap()
@@ -158,23 +186,24 @@ impl Bil {
             assurance_level: signer.assurance_level(),
         };
 
-        // 4. Hash the receipt envelope (excluding signature)
-        // For now, we just serialize the receipt to JSON and hash that as a placeholder
-        // In a real implementation, we would have a specific canonical representation for the receipt
-        let receipt_json = serde_json::to_value(&receipt).unwrap();
-        let receipt_bil_value = bil_canonical::BilValue::try_from(&receipt_json).unwrap();
-        let canonical_commitment = bil_canonical::encode_canonical(&receipt_bil_value)
-            .map(|bytes| bil_canonical::Hash256::sha256(&bytes))
-            .map_err(|e| BilError::Failed(format!("Failed to hash receipt: {}", e)))?;
-        
-        receipt.canonical_commitment = canonical_commitment.clone();
+        // 4. Hash the preimage
+        let preimage_json = serde_json::to_value(&preimage).unwrap();
+        let preimage_bil_value = bil_canonical::BilValue::try_from(&preimage_json).unwrap();
+        let canonical_bytes = bil_canonical::encode_canonical(&preimage_bil_value)
+            .map_err(|e| BilError::Failed(format!("Failed to encode preimage: {}", e)))?;
+        let canonical_commitment = bil_canonical::Hash256::sha256(&canonical_bytes);
 
-        // 5. Sign the commitment
+        // 5. Sign the preimage bytes, not just the commitment hash
         let signature = signer
-            .sign(&canonical_commitment.0)
+            .sign(&canonical_bytes)
             .map_err(|e| BilError::Failed(format!("Failed to sign receipt: {}", e)))?;
         
-        receipt.signature = signature;
+        // 6. Construct the final receipt
+        let receipt = InkReceipt {
+            preimage,
+            canonical_commitment,
+            signature,
+        };
 
         Ok(IssuedArtifact { receipt })
     }

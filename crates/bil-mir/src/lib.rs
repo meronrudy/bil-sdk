@@ -51,6 +51,8 @@ pub struct AuthorityEdge {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct EvidenceRefNode {
     pub id: EvidenceRef,
+    pub hash: bil_canonical::Hash256,
+    pub kind: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

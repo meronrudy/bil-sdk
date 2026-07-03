@@ -1,0 +1,228 @@
+{
+  "graph_id": "mock-graph-0",
+  "profile": "bank_branch",
+  "events": [
+    {
+      "id": "evt-0-1",
+      "kind": "BankBranchIntakeStarted"
+    },
+    {
+      "id": "evt-0-2",
+      "kind": "ConsentCaptured"
+    },
+    {
+      "id": "evt-0-3",
+      "kind": "DocumentReceived"
+    },
+    {
+      "id": "evt-0-ai",
+      "kind": "ModelInvoked"
+    },
+    {
+      "id": "evt-0-review",
+      "kind": "HumanReviewed"
+    },
+    {
+      "id": "evt-0-decision",
+      "kind": "DecisionIssued"
+    }
+  ],
+  "evidence": [
+    {
+      "id": "evd-0-doc1",
+      "hash": [
+        176,
+        74,
+        206,
+        249,
+        240,
+        158,
+        29,
+        57,
+        94,
+        208,
+        17,
+        10,
+        9,
+        42,
+        11,
+        83,
+        200,
+        218,
+        81,
+        49,
+        40,
+        128,
+        192,
+        178,
+        109,
+        173,
+        96,
+        60,
+        254,
+        110,
+        237,
+        31
+      ],
+      "kind": "application/pdf"
+    },
+    {
+      "id": "evd-0-ai-summary",
+      "hash": [
+        54,
+        224,
+        217,
+        58,
+        149,
+        180,
+        125,
+        26,
+        253,
+        1,
+        179,
+        149,
+        3,
+        73,
+        172,
+        206,
+        56,
+        102,
+        20,
+        128,
+        189,
+        148,
+        0,
+        33,
+        116,
+        220,
+        117,
+        159,
+        223,
+        209,
+        216,
+        138
+      ],
+      "kind": "text/markdown"
+    }
+  ],
+  "authorities": [
+    {
+      "id": "auth-0-teller",
+      "edge": {
+        "actor": "teller-001",
+        "system": "branch-001",
+        "role": "BranchTeller",
+        "scope": "intake",
+        "policy_ref": "pol-intake-v1",
+        "valid_from_ms": 1672531200000,
+        "valid_until_ms": null
+      }
+    },
+    {
+      "id": "auth-0-ai",
+      "edge": {
+        "actor": "ai-assistant-v2",
+        "system": "cloud-llm",
+        "role": "Assistant",
+        "scope": "summarization",
+        "policy_ref": "pol-ai-v2",
+        "valid_from_ms": 1672531200000,
+        "valid_until_ms": null
+      }
+    },
+    {
+      "id": "auth-0-manager",
+      "edge": {
+        "actor": "manager-001",
+        "system": "branch-001",
+        "role": "BranchManager",
+        "scope": "review",
+        "policy_ref": "pol-review-v1",
+        "valid_from_ms": 1672531200000,
+        "valid_until_ms": null
+      }
+    }
+  ],
+  "policies": [
+    {
+      "id": "pol-intake-v1"
+    },
+    {
+      "id": "pol-ai-v2"
+    },
+    {
+      "id": "pol-review-v1"
+    }
+  ],
+  "replay": {
+    "initial_state_hash": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "transition_hashes": [],
+    "final_state_hash": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  }
+}

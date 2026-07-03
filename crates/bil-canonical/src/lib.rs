@@ -33,6 +33,10 @@ pub struct Hash256(pub [u8; 32]);
 use base64::{engine::general_purpose::STANDARD as BASE64_STANDARD, Engine as _};
 
 impl Hash256 {
+    pub fn zero() -> Self {
+        Hash256([0; 32])
+    }
+
     pub fn sha256(data: &[u8]) -> Self {
         let mut hasher = Sha256::new();
         hasher.update(data);
@@ -68,6 +72,12 @@ impl Hash256 {
         let mut hash = [0u8; 32];
         hash.copy_from_slice(&bytes);
         Ok(Hash256(hash))
+    }
+}
+
+impl Default for Hash256 {
+    fn default() -> Self {
+        Self::zero()
     }
 }
 

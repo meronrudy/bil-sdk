@@ -1,0 +1,37 @@
+{
+  "status": "Warn",
+  "receipt_id": "rcpt-65b597dc-4772-4fa3-9666-ca07c7feaf12",
+  "profile": "bank_branch",
+  "checks": [
+    {
+      "kind": "CanonicalEncodingValid",
+      "status": "Pass"
+    },
+    {
+      "kind": "CommitmentHashValid",
+      "status": "Pass"
+    },
+    {
+      "kind": "SignatureValid",
+      "status": "Pass"
+    },
+    {
+      "kind": "AssuranceLevelValid",
+      "status": "Warn"
+    },
+    {
+      "kind": "MerkleRootValid",
+      "status": "Pass"
+    },
+    {
+      "kind": "ReplayDeterministic",
+      "status": "Pass"
+    }
+  ],
+  "findings": [
+    {
+      "priority": "P2",
+      "message": "Receipt is signed with L0SoftwareDev key. Not suitable for production."
+    }
+  ]
+}

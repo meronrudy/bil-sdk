@@ -35,18 +35,28 @@ enum Commands {
     },
     /// Issue a receipt-backed artifact
     Issue {
-        capability: String,
-        mir_file: String,
+        #[arg(long)]
+        input: String,
+        #[arg(long)]
+        out: String,
     },
     /// Verify a receipt
     Verify {
-        receipt_file: String,
+        #[arg(long)]
+        receipt: String,
+        #[arg(long)]
+        out: Option<String>,
         #[arg(long)]
         pretty: bool,
     },
     /// Explain verification findings
     Explain {
-        receipt_file: String,
+        #[arg(long)]
+        receipt: String,
+        #[arg(long)]
+        report: Option<String>,
+        #[arg(long)]
+        out: Option<String>,
     },
     /// Run conformance tests
     Conformance {
@@ -59,10 +69,37 @@ fn main() {
 
     match &cli.command {
         Commands::Demo { profile } => {
-            println!("Running demo for profile: {}", profile);
+            let demo_profile = match profile.as_str() {
+                "bank_branch" => bil_sdk::DemoProfile::BankBranch,
+                "loan_decision" => bil_sdk::DemoProfile::LoanDecision,
+                "ai_assurance" => bil_sdk::DemoProfile::AiAssurance,
+                _ => {
+                    println!("Unknown profile: {}", profile);
+                    return;
+                }
+            };
+
+            let demo = bil_sdk::Bil::demo(demo_profile).unwrap();
+            let receipt = demo.receipt().unwrap();
+            let memo = demo.memo().unwrap();
+
+            fs::create_dir_all("artifacts/demo").unwrap();
+
+            let receipt_json = serde_json::to_string_pretty(&receipt).unwrap();
+            fs::write("artifacts/demo/ink_receipt.v1.json", receipt_json).unwrap();
+
+            memo.write_markdown("artifacts/demo/assurance_memo.md").unwrap();
+
+            println!("Demo completed successfully.");
+            println!("Artifacts written to artifacts/demo/");
         }
         Commands::Doctor => {
-            println!("Checking environment...");
+            let report = bil_sdk::Bil::doctor().unwrap();
+            println!("Doctor Report:");
+            println!("  Healthy: {}", report.is_healthy);
+            for msg in report.messages {
+                println!("  - {}", msg);
+            }
         }
         Commands::Mock { profile, seed, out } => {
             if profile == "bank-branch" {
@@ -97,26 +134,69 @@ fn main() {
                 println!("{}", out_json);
             }
         }
-        Commands::Issue { capability, mir_file } => {
-            let json = fs::read_to_string(&mir_file).unwrap();
+        Commands::Issue { input, out } => {
+            let json = fs::read_to_string(&input).unwrap();
             let graph: bil_mir::BilMirGraph = serde_json::from_str(&json).unwrap();
-            let artifact = bil_sdk::Bil::issue(graph, bil_ink::CapabilityCode(capability.clone())).unwrap();
+            let artifact = bil_sdk::Bil::issue(graph, bil_ink::CapabilityCode("demo.receipt".to_string())).unwrap();
             
-            // Write canonical CBOR
-            let cbor_path = mir_file.replace(".mir.json", ".ink.cbor");
-            // For now, we just write JSON as a placeholder since we don't have a full CBOR serializer for the receipt yet
             let receipt_json = serde_json::to_string_pretty(&artifact.receipt).unwrap();
-            fs::write(&cbor_path, &receipt_json).unwrap();
-            println!("Issued receipt to {}", cbor_path);
+            fs::write(&out, &receipt_json).unwrap();
+            println!("Issued receipt to {}", out);
         }
-        Commands::Verify { receipt_file, pretty } => {
-            println!("Verifying receipt: {} (pretty: {})", receipt_file, pretty);
+        Commands::Verify { receipt, out, pretty } => {
+            let json = fs::read_to_string(&receipt).unwrap();
+            let receipt_obj: bil_ink::InkReceipt = serde_json::from_str(&json).unwrap();
+            let report = bil_sdk::Bil::verify(&receipt_obj).unwrap();
+            
+            if let Some(out_path) = out {
+                let report_json = serde_json::to_string_pretty(&report).unwrap();
+                fs::write(out_path, report_json).unwrap();
+                println!("Wrote verification report to {}", out_path);
+            } else if *pretty {
+                println!("Verification Report:");
+                println!("  Status: {:?}", report.status);
+                println!("  Receipt ID: {:?}", report.receipt_id);
+                println!("  Profile: {:?}", report.profile);
+                println!("  Checks:");
+                for check in &report.checks {
+                    println!("    - {:?}: {:?}", check.kind, check.status);
+                }
+                if !report.findings.is_empty() {
+                    println!("  Findings:");
+                    for finding in &report.findings {
+                        println!("    - [{:?}] {}", finding.priority, finding.message);
+                    }
+                }
+            } else {
+                let report_json = serde_json::to_string_pretty(&report).unwrap();
+                println!("{}", report_json);
+            }
         }
-        Commands::Explain { receipt_file } => {
-            println!("Explaining receipt: {}", receipt_file);
+        Commands::Explain { receipt, report, out } => {
+            let json = fs::read_to_string(&receipt).unwrap();
+            let receipt_obj: bil_ink::InkReceipt = serde_json::from_str(&json).unwrap();
+            
+            let report_obj = if let Some(report_path) = report {
+                let report_json = fs::read_to_string(report_path).unwrap();
+                serde_json::from_str(&report_json).unwrap()
+            } else {
+                bil_sdk::Bil::verify(&receipt_obj).unwrap()
+            };
+
+            let explanation = bil_sdk::Bil::explain(&report_obj);
+            
+            if let Some(out_path) = out {
+                fs::write(out_path, &explanation.markdown).unwrap();
+                println!("Wrote explanation to {}", out_path);
+            } else {
+                println!("{}", explanation.markdown);
+            }
         }
         Commands::Conformance { group } => {
-            println!("Running conformance group: {}", group);
+            if let Err(e) = bil_conformance::run_conformance_group(group) {
+                eprintln!("Error: {}", e);
+                std::process::exit(1);
+            }
         }
     }
 }

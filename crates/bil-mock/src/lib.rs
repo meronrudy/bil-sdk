@@ -44,6 +44,8 @@ pub fn generate_bank_branch_mock(config: &BankBranchSyntheticConfig) -> BilMirGr
     let mut evidence = vec![
         EvidenceRefNode {
             id: EvidenceRef(format!("evd-{}-doc1", config.seed)),
+            hash: bil_canonical::Hash256::sha256(b"mock-doc-content"),
+            kind: Some("application/pdf".to_string()),
         },
     ];
 
@@ -75,6 +77,8 @@ pub fn generate_bank_branch_mock(config: &BankBranchSyntheticConfig) -> BilMirGr
         });
         evidence.push(EvidenceRefNode {
             id: EvidenceRef(format!("evd-{}-ai-summary", config.seed)),
+            hash: bil_canonical::Hash256::sha256(b"mock-ai-summary-content"),
+            kind: Some("text/markdown".to_string()),
         });
         authorities.push(AuthorityNode {
             id: AuthorityRef(format!("auth-{}-ai", config.seed)),

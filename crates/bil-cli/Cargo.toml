@@ -13,6 +13,7 @@ bil-mir = { path = "../bil-mir" }
 bil-mock = { path = "../bil-mock" }
 bil-sdk = { path = "../bil-sdk" }
 bil-ink = { path = "../bil-ink" }
+bil-conformance = { path = "../bil-conformance" }
 anyhow.workspace = true
 serde_json.workspace = true
 clap = { version = "4.6.1", features = ["derive"] }

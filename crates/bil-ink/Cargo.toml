@@ -10,5 +10,6 @@ description = "INK receipt envelopes for BIL SDK"
 [dependencies]
 bil-core = { path = "../bil-core" }
 bil-canonical = { path = "../bil-canonical" }
+bil-mir = { path = "../bil-mir" }
 serde.workspace = true
 thiserror.workspace = true
