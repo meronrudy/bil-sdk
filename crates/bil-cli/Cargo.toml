@@ -1,4 +1,4 @@
-pusj[package]
+[package]
 name = "bil-cli"
 version.workspace = true
 edition.workspace = true
