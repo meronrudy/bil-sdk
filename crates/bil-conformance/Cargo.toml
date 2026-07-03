@@ -8,6 +8,11 @@ repository.workspace = true
 description = "Test vectors, profile gates, compatibility suite for BIL SDK"
 
 [dependencies]
+bil-canonical = { path = "../bil-canonical" }
 bil-core = { path = "../bil-core" }
+bil-ink = { path = "../bil-ink" }
+bil-sdk = { path = "../bil-sdk" }
+bil-verify = { path = "../bil-verify" }
 serde.workspace = true
+serde_json.workspace = true
 thiserror.workspace = true

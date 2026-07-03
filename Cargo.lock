@@ -121,8 +121,13 @@ dependencies = [
 name = "bil-conformance"
 version = "0.1.0"
 dependencies = [
+ "bil-canonical",
  "bil-core",
+ "bil-ink",
+ "bil-sdk",
+ "bil-verify",
  "serde",
+ "serde_json",
  "thiserror",
 ]
 

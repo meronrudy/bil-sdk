@@ -17,24 +17,24 @@ Current public repo state:
 - The root workspace already targets the public `bil` crate set.
 - `crates/bil-mock`, `crates/bil-replay`, `crates/bil-explain`, and `python`
   have been removed from workspace membership.
-- Some remaining public crates still reference removed path dependencies.
-- `artifacts/private_staging/bankabil/` is the current staging source for
-  private BAINK materials.
+- `ReplayState` is folded into `bil-mir`.
+- Generic explanation output is folded into `bil-sdk::explain`.
+- Public mock/demo flow uses the generic `human_override` profile.
+- Private BAINK materials have been removed from the public branch and should
+  live only in the private repo or private staging outside this public tree.
 
-Immediate blocker:
+Recently resolved blockers:
 
-```text
-cargo test
-```
-
-currently fails because `crates/bil-mir` still depends on the removed
-`crates/bil-replay` path. Related cleanup is also needed for remaining
-`bil-mock` and `bil-explain` references in `bil-cli` and `bil-sdk`.
+- A malformed `crates/bil-cli/Cargo.toml` header previously blocked Cargo
+  metadata, formatting, and tests.
+- `artifacts/private_staging/bankabil/` previously leaked private BAINK
+  material into the public branch.
 
 Exit gate:
 
-- Every missing path dependency is either restored intentionally or removed by
-  folding its public-safe functionality into an active public crate.
+- `cargo metadata`, `cargo fmt --check`, and `cargo test` pass.
+- `git ls-files` shows no tracked `artifacts/private_staging`, `artifacts/demo`,
+  `build`, or `target` paths.
 
 ## Phase 1: Restore Public BIL Build Health
 
