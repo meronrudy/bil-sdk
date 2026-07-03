@@ -1,3 +1,4 @@
+use anyhow::{anyhow, Context, Result};
 use bil_mir::BilMirGraph;
 use clap::{Parser, Subcommand};
 use std::fs;
@@ -78,33 +79,33 @@ enum Commands {
     Conformance { group: String },
 }
 
-fn main() {
+fn main() -> Result<()> {
     let cli = Cli::parse();
 
     match &cli.command {
         Commands::Demo { profile } => {
-            let Some(demo_profile) = bil_sdk::DemoProfile::from_name(profile) else {
-                eprintln!("Unknown profile: {}", profile);
-                std::process::exit(2);
-            };
+            let demo_profile = bil_sdk::DemoProfile::from_name(profile)
+                .ok_or_else(|| anyhow!("unknown profile: {}", profile))?;
 
-            let demo = bil_sdk::Bil::demo(demo_profile).unwrap();
-            let receipt = demo.receipt().unwrap();
-            let memo = demo.memo().unwrap();
+            let demo = bil_sdk::Bil::demo(demo_profile)?;
+            let receipt = demo.receipt()?;
+            let memo = demo.memo()?;
 
-            fs::create_dir_all("artifacts/demo").unwrap();
+            fs::create_dir_all("artifacts/demo")
+                .context("failed to create artifacts/demo directory")?;
 
-            let receipt_json = serde_json::to_string_pretty(&receipt).unwrap();
-            write_text("artifacts/demo/ink_receipt.v1.json", &receipt_json).unwrap();
+            let receipt_json =
+                serde_json::to_string_pretty(&receipt).context("failed to encode receipt JSON")?;
+            write_text("artifacts/demo/ink_receipt.v1.json", &receipt_json)?;
 
             memo.write_markdown("artifacts/demo/assurance_memo.md")
-                .unwrap();
+                .context("failed to write assurance memo")?;
 
             println!("Demo completed successfully.");
             println!("Artifacts written to artifacts/demo/");
         }
         Commands::Doctor => {
-            let report = bil_sdk::Bil::doctor().unwrap();
+            let report = bil_sdk::Bil::doctor()?;
             println!("Doctor Report:");
             println!("  Healthy: {}", report.is_healthy);
             for msg in report.messages {
@@ -117,22 +118,22 @@ fn main() {
             seed,
             out,
         } => {
-            let Some(mock_profile) = resolve_mock_profile(target, profile) else {
-                eprintln!("Unknown mock profile: {}", profile);
-                std::process::exit(2);
-            };
+            let mock_profile = resolve_mock_profile(target, profile)
+                .ok_or_else(|| anyhow!("unknown mock profile: {}", profile))?;
             let graph = bil_sdk::Bil::mock(mock_profile)
                 .with_seed(seed.unwrap_or(0))
-                .build()
-                .unwrap();
-            let json = serde_json::to_string_pretty(&graph).unwrap();
-            write_or_print(out.as_deref(), &json, "mock workflow").unwrap();
+                .build()?;
+            let json =
+                serde_json::to_string_pretty(&graph).context("failed to encode mock MIR JSON")?;
+            write_or_print(out.as_deref(), &json, "mock workflow")?;
         }
         Commands::Build { workflow_file, out } => {
-            let json = fs::read_to_string(workflow_file).unwrap();
-            let graph: BilMirGraph = serde_json::from_str(&json).unwrap();
-            let out_json = serde_json::to_string_pretty(&graph).unwrap();
-            write_or_print(out.as_deref(), &out_json, "built MIR").unwrap();
+            let json = read_text_file(workflow_file)?;
+            let graph: BilMirGraph = serde_json::from_str(&json)
+                .with_context(|| format!("failed to parse MIR graph from {}", workflow_file))?;
+            let out_json =
+                serde_json::to_string_pretty(&graph).context("failed to encode MIR JSON")?;
+            write_or_print(out.as_deref(), &out_json, "built MIR")?;
         }
         Commands::Issue {
             input,
@@ -142,15 +143,16 @@ fn main() {
             positional_2,
         } => {
             let (input_path, capability_code) =
-                resolve_issue_args(input, capability, positional_1, positional_2);
-            let json = fs::read_to_string(&input_path).unwrap();
-            let graph = parse_issue_input(&json).unwrap();
-            let artifact =
-                bil_sdk::Bil::issue(graph, bil_ink::CapabilityCode(capability_code)).unwrap();
+                resolve_issue_args(input, capability, positional_1, positional_2)?;
+            let json = read_text_file(&input_path)?;
+            let graph = parse_issue_input(&json)
+                .with_context(|| format!("failed to parse MIR graph from {}", input_path))?;
+            let artifact = bil_sdk::Bil::issue(graph, bil_ink::CapabilityCode(capability_code))?;
 
-            let receipt_json = serde_json::to_string_pretty(&artifact.receipt).unwrap();
+            let receipt_json = serde_json::to_string_pretty(&artifact.receipt)
+                .context("failed to encode receipt JSON")?;
             if let Some(out_path) = out {
-                write_text(out_path, &receipt_json).unwrap();
+                write_text(out_path, &receipt_json)?;
                 println!("Issued receipt to {}", out_path);
             } else {
                 println!("{}", receipt_json);
@@ -162,22 +164,22 @@ fn main() {
             pretty,
             receipt_file,
         } => {
-            let receipt_path = receipt
-                .as_deref()
-                .or(receipt_file.as_deref())
-                .expect("receipt path is required");
-            let json = fs::read_to_string(receipt_path).unwrap();
-            let receipt_obj: bil_ink::InkReceipt = serde_json::from_str(&json).unwrap();
-            let report = bil_sdk::Bil::verify(&receipt_obj).unwrap();
+            let receipt_path = resolve_receipt_path(receipt, receipt_file)?;
+            let json = read_text_file(receipt_path)?;
+            let receipt_obj: bil_ink::InkReceipt = serde_json::from_str(&json)
+                .with_context(|| format!("failed to parse receipt from {}", receipt_path))?;
+            let report = bil_sdk::Bil::verify(&receipt_obj)?;
 
             if let Some(out_path) = out {
-                let report_json = serde_json::to_string_pretty(&report).unwrap();
-                write_text(out_path, &report_json).unwrap();
+                let report_json = serde_json::to_string_pretty(&report)
+                    .context("failed to encode verification report JSON")?;
+                write_text(out_path, &report_json)?;
                 println!("Wrote verification report to {}", out_path);
             } else if *pretty {
                 print_pretty_report(&report);
             } else {
-                let report_json = serde_json::to_string_pretty(&report).unwrap();
+                let report_json = serde_json::to_string_pretty(&report)
+                    .context("failed to encode verification report JSON")?;
                 println!("{}", report_json);
             }
         }
@@ -187,36 +189,34 @@ fn main() {
             out,
             receipt_file,
         } => {
-            let receipt_path = receipt
-                .as_deref()
-                .or(receipt_file.as_deref())
-                .expect("receipt path is required");
-            let json = fs::read_to_string(receipt_path).unwrap();
-            let receipt_obj: bil_ink::InkReceipt = serde_json::from_str(&json).unwrap();
+            let receipt_path = resolve_receipt_path(receipt, receipt_file)?;
+            let json = read_text_file(receipt_path)?;
+            let receipt_obj: bil_ink::InkReceipt = serde_json::from_str(&json)
+                .with_context(|| format!("failed to parse receipt from {}", receipt_path))?;
 
             let report_obj = if let Some(report_path) = report {
-                let report_json = fs::read_to_string(report_path).unwrap();
-                serde_json::from_str(&report_json).unwrap()
+                let report_json = read_text_file(report_path)?;
+                serde_json::from_str(&report_json)
+                    .with_context(|| format!("failed to parse report from {}", report_path))?
             } else {
-                bil_sdk::Bil::verify(&receipt_obj).unwrap()
+                bil_sdk::Bil::verify(&receipt_obj)?
             };
 
             let explanation = bil_sdk::Bil::explain(&report_obj);
 
             if let Some(out_path) = out {
-                write_text(out_path, &explanation.markdown).unwrap();
+                write_text(out_path, &explanation.markdown)?;
                 println!("Wrote explanation to {}", out_path);
             } else {
                 println!("{}", explanation.markdown);
             }
         }
         Commands::Conformance { group } => {
-            if let Err(e) = bil_conformance::run_conformance_group(group) {
-                eprintln!("Error: {}", e);
-                std::process::exit(1);
-            }
+            bil_conformance::run_conformance_group(group).map_err(|e| anyhow!(e))?;
         }
     }
+
+    Ok(())
 }
 
 fn resolve_mock_profile(target: &str, profile: &str) -> Option<bil_sdk::SyntheticProfile> {
@@ -232,16 +232,30 @@ fn resolve_issue_args(
     capability: &str,
     positional_1: &Option<String>,
     positional_2: &Option<String>,
-) -> (String, String) {
+) -> Result<(String, String)> {
     if let Some(input_path) = input {
-        return (input_path.clone(), capability.to_string());
+        return Ok((input_path.clone(), capability.to_string()));
     }
 
     match (positional_1, positional_2) {
-        (Some(input_path), None) => (input_path.clone(), capability.to_string()),
-        (Some(capability_code), Some(input_path)) => (input_path.clone(), capability_code.clone()),
-        _ => panic!("issue requires --input <mir.json> or positional MIR input"),
+        (Some(input_path), None) => Ok((input_path.clone(), capability.to_string())),
+        (Some(capability_code), Some(input_path)) => {
+            Ok((input_path.clone(), capability_code.clone()))
+        }
+        _ => Err(anyhow!(
+            "issue requires --input <mir.json> or positional MIR input"
+        )),
     }
+}
+
+fn resolve_receipt_path<'a>(
+    receipt: &'a Option<String>,
+    receipt_file: &'a Option<String>,
+) -> Result<&'a str> {
+    receipt
+        .as_deref()
+        .or(receipt_file.as_deref())
+        .ok_or_else(|| anyhow!("receipt path is required"))
 }
 
 fn parse_issue_input(json: &str) -> Result<BilMirGraph, serde_json::Error> {
@@ -252,7 +266,12 @@ fn normalize_name(value: &str) -> String {
     value.trim().to_ascii_lowercase().replace('-', "_")
 }
 
-fn write_or_print(out: Option<&str>, contents: &str, label: &str) -> std::io::Result<()> {
+fn read_text_file(path: impl AsRef<Path>) -> Result<String> {
+    let path = path.as_ref();
+    fs::read_to_string(path).with_context(|| format!("failed to read {}", path.display()))
+}
+
+fn write_or_print(out: Option<&str>, contents: &str, label: &str) -> Result<()> {
     if let Some(out_path) = out {
         write_text(out_path, contents)?;
         println!("Wrote {} to {}", label, out_path);
@@ -262,17 +281,19 @@ fn write_or_print(out: Option<&str>, contents: &str, label: &str) -> std::io::Re
     Ok(())
 }
 
-fn write_text(path: impl AsRef<Path>, contents: &str) -> std::io::Result<()> {
+fn write_text(path: impl AsRef<Path>, contents: &str) -> Result<()> {
     let path = path.as_ref();
     if let Some(parent) = path.parent() {
         if !parent.as_os_str().is_empty() {
-            fs::create_dir_all(parent)?;
+            fs::create_dir_all(parent)
+                .with_context(|| format!("failed to create {}", parent.display()))?;
         }
     }
     if contents.ends_with('\n') {
-        fs::write(path, contents)
+        fs::write(path, contents).with_context(|| format!("failed to write {}", path.display()))
     } else {
         fs::write(path, format!("{}\n", contents))
+            .with_context(|| format!("failed to write {}", path.display()))
     }
 }
 
@@ -334,5 +355,30 @@ mod tests {
 
         assert_eq!(parsed.graph_id.0, graph.graph_id.0);
         assert_eq!(parsed.profile.0, "human_override");
+    }
+
+    #[test]
+    fn issue_args_require_input() {
+        let err = resolve_issue_args(&None, "assurance-receipt", &None, &None).unwrap_err();
+        assert!(err.to_string().contains("--input <mir.json>"));
+    }
+
+    #[test]
+    fn receipt_path_is_required() {
+        let err = resolve_receipt_path(&None, &None).unwrap_err();
+        assert_eq!(err.to_string(), "receipt path is required");
+    }
+
+    #[test]
+    fn read_text_file_reports_bad_input_path() {
+        let missing =
+            std::env::temp_dir().join(format!("bil-cli-missing-input-{}.json", std::process::id()));
+        let err = read_text_file(&missing).unwrap_err();
+        assert!(err.to_string().contains("failed to read"));
+    }
+
+    #[test]
+    fn issue_input_parser_rejects_malformed_mir_json() {
+        assert!(parse_issue_input("{").is_err());
     }
 }
