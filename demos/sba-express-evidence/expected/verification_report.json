@@ -1,7 +1,7 @@
 {
   "status": "Warn",
-  "receipt_id": "rcpt-65b597dc-4772-4fa3-9666-ca07c7feaf12",
-  "profile": "bank_branch",
+  "receipt_id": "rcpt-e00e2c92-008e-473e-bade-a6fa64571a1c",
+  "profile": "sba_express_evidence",
   "checks": [
     {
       "kind": "CanonicalEncodingValid",
@@ -20,7 +20,19 @@
       "status": "Warn"
     },
     {
+      "kind": "EvidenceRefsPresent",
+      "status": "Pass"
+    },
+    {
       "kind": "MerkleRootValid",
+      "status": "Pass"
+    },
+    {
+      "kind": "AuthorityRefsPresent",
+      "status": "Pass"
+    },
+    {
+      "kind": "PolicyRefsPresent",
       "status": "Pass"
     },
     {

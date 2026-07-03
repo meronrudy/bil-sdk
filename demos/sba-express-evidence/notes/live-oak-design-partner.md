@@ -1,5 +1,11 @@
-# Live Oak Design Partner Notes
+# Live Oak-Style Design-Partner Note
 
-This scenario is designed for a Live Oak-style small business lending design-partner conversation.
+This scenario is designed for a Live Oak-style small-business lending
+conversation. It should be described as synthetic and non-production.
 
-It avoids implying Live Oak endorsement while still letting you build the exact demo you need.
+Useful framing:
+
+> The demo shows how fragmented evidence from a multi-vendor SBA
+> Express-style workflow can become a signed, verifiable receipt.
+
+Do not imply endorsement, certification, or production use by Live Oak Bank.

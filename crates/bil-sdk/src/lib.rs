@@ -45,8 +45,11 @@ impl DemoRun {
         let mut markdown = String::new();
         markdown.push_str("# Assurance Memo\n\n");
         markdown.push_str(&format!("**Profile:** {:?}\n", self.profile));
-        markdown.push_str(&format!("**Receipt ID:** {}\n\n", receipt.preimage.receipt_id.0));
-        
+        markdown.push_str(&format!(
+            "**Receipt ID:** {}\n\n",
+            receipt.preimage.receipt_id.0
+        ));
+
         markdown.push_str("## Verification Summary\n\n");
         markdown.push_str(&explanation.markdown);
 
@@ -142,10 +145,13 @@ impl Bil {
         }
     }
 
-    pub fn issue(graph: BilMirGraph, capability: CapabilityCode) -> Result<IssuedArtifact, BilError> {
+    pub fn issue(
+        graph: BilMirGraph,
+        capability: CapabilityCode,
+    ) -> Result<IssuedArtifact, BilError> {
         use bil_canonical::BilCanonical;
         use bil_core::ReceiptId;
-        use bil_ink::{IssuerRef, SubjectRef, InkReceiptPreimage};
+        use bil_ink::{InkReceiptPreimage, IssuerRef, SubjectRef};
         use bil_signers::{BilSigner, SoftwareDevSigner};
 
         // 1. Hash the MIR graph
@@ -186,10 +192,10 @@ impl Bil {
             assurance_level: signer.assurance_level(),
         };
 
-        // 4. Hash the preimage
-        let preimage_json = serde_json::to_value(&preimage).unwrap();
-        let preimage_bil_value = bil_canonical::BilValue::try_from(&preimage_json).unwrap();
-        let canonical_bytes = bil_canonical::encode_canonical(&preimage_bil_value)
+        // 4. Hash the explicit receipt preimage. The commitment and signature
+        // are intentionally outside this payload.
+        let canonical_bytes = preimage
+            .to_canonical_bytes()
             .map_err(|e| BilError::Failed(format!("Failed to encode preimage: {}", e)))?;
         let canonical_commitment = bil_canonical::Hash256::sha256(&canonical_bytes);
 
@@ -197,7 +203,7 @@ impl Bil {
         let signature = signer
             .sign(&canonical_bytes)
             .map_err(|e| BilError::Failed(format!("Failed to sign receipt: {}", e)))?;
-        
+
         // 6. Construct the final receipt
         let receipt = InkReceipt {
             preimage,

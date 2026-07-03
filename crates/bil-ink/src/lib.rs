@@ -1,5 +1,7 @@
-use bil_canonical::Hash256;
-use bil_core::{AssuranceLevel, AuthorityRef, EventId, EvidenceRef, PolicyRef, ProfileId, ReceiptId};
+use bil_canonical::{BilCanonical, BilValue, CanonicalError, Hash256};
+use bil_core::{
+    AssuranceLevel, AuthorityRef, EventId, EvidenceRef, PolicyRef, ProfileId, ReceiptId,
+};
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -39,6 +41,14 @@ pub struct InkReceiptPreimage {
     pub assurance_level: AssuranceLevel,
 }
 
+impl BilCanonical for InkReceiptPreimage {
+    fn to_canonical_value(&self) -> Result<BilValue, CanonicalError> {
+        let json =
+            serde_json::to_value(self).map_err(|e| CanonicalError::Encoding(e.to_string()))?;
+        BilValue::try_from(&json)
+    }
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct InkReceipt {
     #[serde(flatten)]
@@ -47,11 +57,23 @@ pub struct InkReceipt {
     pub signature: SignatureBytes,
 }
 
+impl InkReceipt {
+    /// Returns the explicit commitment preimage.
+    ///
+    /// `canonical_commitment` and `signature` are intentionally excluded from
+    /// this value; they must never be fields inside the payload they commit to.
+    pub fn signing_preimage(&self) -> InkReceiptPreimage {
+        self.preimage.clone()
+    }
+
+    pub fn evidence_root(&self) -> Option<&MerkleRoot> {
+        self.preimage.evidence_root.as_ref()
+    }
+}
+
 pub mod merkle {
     use super::*;
     use bil_canonical::Hash256;
-
-    use bil_canonical::{BilCanonical, BilValue, CanonicalError};
 
     #[derive(Debug, Clone)]
     pub struct MerkleTree {
@@ -76,11 +98,20 @@ pub mod merkle {
     impl BilCanonical for EvidenceLeafPreimage {
         fn to_canonical_value(&self) -> Result<BilValue, CanonicalError> {
             let mut map = vec![
-                (BilValue::Text("evidence_id".to_string()), BilValue::Text(self.evidence_id.0.clone())),
-                (BilValue::Text("evidence_hash".to_string()), BilValue::Bytes(self.evidence_hash.0.to_vec())),
+                (
+                    BilValue::Text("evidence_id".to_string()),
+                    BilValue::Text(self.evidence_id.0.clone()),
+                ),
+                (
+                    BilValue::Text("evidence_hash".to_string()),
+                    BilValue::Bytes(self.evidence_hash.0.to_vec()),
+                ),
             ];
             if let Some(kind) = &self.kind {
-                map.push((BilValue::Text("kind".to_string()), BilValue::Text(kind.clone())));
+                map.push((
+                    BilValue::Text("kind".to_string()),
+                    BilValue::Text(kind.clone()),
+                ));
             }
             Ok(BilValue::Map(map))
         }
@@ -106,18 +137,21 @@ pub mod merkle {
     }
 
     impl MerkleTree {
-        pub fn build(evidence_nodes: &[bil_mir::EvidenceRefNode]) -> Result<Option<Self>, CanonicalError> {
+        pub fn build(
+            evidence_nodes: &[bil_mir::EvidenceRefNode],
+        ) -> Result<Option<Self>, CanonicalError> {
             if evidence_nodes.is_empty() {
                 return Ok(None);
             }
 
-            let mut preimages: Vec<EvidenceLeafPreimage> = evidence_nodes.iter().map(|node| {
-                EvidenceLeafPreimage {
+            let mut preimages: Vec<EvidenceLeafPreimage> = evidence_nodes
+                .iter()
+                .map(|node| EvidenceLeafPreimage {
                     evidence_id: node.id.clone(),
                     evidence_hash: node.hash.clone(),
                     kind: node.kind.clone(),
-                }
-            }).collect();
+                })
+                .collect();
 
             // Sort leaves deterministically by their canonical bytes
             preimages.sort_by(|a, b| {
@@ -133,7 +167,7 @@ pub mod merkle {
                 let mut hash_input = Vec::new();
                 hash_input.extend_from_slice(b"BIL_EVIDENCE_LEAF_V1");
                 hash_input.extend_from_slice(&preimage.to_canonical_bytes()?);
-                
+
                 let hash = Hash256::sha256(&hash_input);
                 let leaf = MerkleLeaf {
                     index: index as u64,
@@ -164,7 +198,7 @@ pub mod merkle {
             for chunk in level.chunks(2) {
                 let mut combined = Vec::new();
                 combined.extend_from_slice(b"BIL_MERKLE_NODE_V1");
-                
+
                 if chunk.len() == 2 {
                     combined.extend_from_slice(&chunk[0].0);
                     combined.extend_from_slice(&chunk[1].0);
@@ -186,13 +220,18 @@ pub mod merkle {
 
             let leaf = self.leaves[index].clone();
             let mut siblings = Vec::new();
-            
+
             let mut current_index = index;
-            let mut current_level: Vec<Hash256> = self.leaves.iter().map(|l| l.hash.clone()).collect();
+            let mut current_level: Vec<Hash256> =
+                self.leaves.iter().map(|l| l.hash.clone()).collect();
 
             while current_level.len() > 1 {
                 let is_right_child = current_index % 2 != 0;
-                let sibling_index = if is_right_child { current_index - 1 } else { current_index + 1 };
+                let sibling_index = if is_right_child {
+                    current_index - 1
+                } else {
+                    current_index + 1
+                };
 
                 let sibling_hash = if sibling_index < current_level.len() {
                     current_level[sibling_index].clone()
@@ -203,7 +242,11 @@ pub mod merkle {
 
                 siblings.push(MerkleSibling {
                     hash: sibling_hash,
-                    direction: if is_right_child { MerkleDirection::Left } else { MerkleDirection::Right },
+                    direction: if is_right_child {
+                        MerkleDirection::Left
+                    } else {
+                        MerkleDirection::Right
+                    },
                 });
 
                 let mut next_level = Vec::new();

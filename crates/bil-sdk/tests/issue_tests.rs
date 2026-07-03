@@ -18,7 +18,10 @@ fn issue_populates_evidence_root_when_evidence_exists() {
     let receipt = artifact.receipt;
 
     assert_eq!(receipt.preimage.capability.0, "AssuranceReceipt");
-    assert_eq!(receipt.preimage.assurance_level, AssuranceLevel::L0SoftwareDev);
+    assert_eq!(
+        receipt.preimage.assurance_level,
+        AssuranceLevel::L0SoftwareDev
+    );
     assert!(!receipt.signature.0.is_empty());
     assert!(!receipt.preimage.signer.0.is_empty());
     assert!(!receipt.preimage.event_refs.is_empty());
@@ -37,8 +40,14 @@ fn evidence_mutation_changes_merkle_root() {
     let mut graph_b = graph_a.clone();
     graph_b.evidence[0].hash = bil_canonical::Hash256::sha256(b"mutated");
 
-    let root_a = bil_ink::merkle::MerkleTree::build(&graph_a.evidence).unwrap().unwrap().root;
-    let root_b = bil_ink::merkle::MerkleTree::build(&graph_b.evidence).unwrap().unwrap().root;
+    let root_a = bil_ink::merkle::MerkleTree::build(&graph_a.evidence)
+        .unwrap()
+        .unwrap()
+        .root;
+    let root_b = bil_ink::merkle::MerkleTree::build(&graph_b.evidence)
+        .unwrap()
+        .unwrap()
+        .root;
 
     assert_ne!(root_a.0, root_b.0);
 }
@@ -63,10 +72,15 @@ fn verifier_accepts_issued_receipt_signature() {
     let report = Bil::verify(&receipt).unwrap();
 
     // The overall status might be Warn due to L0SoftwareDev, but it shouldn't be Fail
-    assert_ne!(report.status, bil_core::BilStatus::Fail, "Verification failed with findings: {:?}", report.findings);
-    assert!(report.checks.iter().any(|c|
-        c.kind == bil_verify::VerificationCheckKind::SignatureValid && c.status == bil_core::BilStatus::Pass
-    ));
+    assert_ne!(
+        report.status,
+        bil_core::BilStatus::Fail,
+        "Verification failed with findings: {:?}",
+        report.findings
+    );
+    assert!(report.checks.iter().any(|c| c.kind
+        == bil_verify::VerificationCheckKind::SignatureValid
+        && c.status == bil_core::BilStatus::Pass));
 }
 
 #[test]
@@ -75,6 +89,9 @@ fn demo_receipt_uses_issue_path() {
     let receipt = demo.receipt().unwrap();
 
     assert_eq!(receipt.preimage.capability.0, "demo.receipt");
-    assert_eq!(receipt.preimage.assurance_level, AssuranceLevel::L0SoftwareDev);
+    assert_eq!(
+        receipt.preimage.assurance_level,
+        AssuranceLevel::L0SoftwareDev
+    );
     assert!(!receipt.signature.0.is_empty());
 }

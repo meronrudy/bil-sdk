@@ -1,0 +1,27 @@
+{
+  "event_id": "evt_alloy_kyb_001",
+  "event_type": "KYB_CHECK_COMPLETED",
+  "vendor_system": "ALLOY_STYLE_KYB",
+  "workflow_stage": "KYB_SCREENING",
+  "borrower_or_business_ref": "hmac_demo_business_2026",
+  "loan_or_account_ref": "hmac_demo_loan_2026",
+  "timestamp": "2026-07-03T12:00:00Z",
+  "actor_type": "VENDOR_SYSTEM",
+  "input_payload_hash": "demo_input_hash_evt_alloy_kyb_001",
+  "output_payload_hash": "demo_output_hash_evt_alloy_kyb_001",
+  "policy_refs": [
+    "KYB_FRAUD_SYNTHETIC_POLICY_V1"
+  ],
+  "model_refs": [],
+  "vendor_rule_refs": [
+    "KYB_RISK_RULESET_SYNTHETIC_V1"
+  ],
+  "human_review_refs": [],
+  "exception_refs": [],
+  "consent_refs": [
+    "receipt_apiture_consent_001"
+  ],
+  "source_system_refs": [
+    "synthetic_alloy_style_kyb"
+  ]
+}

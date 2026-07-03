@@ -1,3 +1,4 @@
+use bil_canonical::BilCanonical;
 use bil_core::{BilStatus, ProfileId, ReceiptId};
 use bil_signers::BilSignatureVerifier;
 use serde::{Deserialize, Serialize};
@@ -57,53 +58,9 @@ impl VerificationEngine {
         let mut findings = Vec::new();
         let mut overall_status = BilStatus::Pass;
 
-        // 1. Check Signature
-        let verifier = bil_signers::SoftwareDevSignatureVerifier;
-        
         // 0. Check Canonical Encoding
-        let preimage_json = match serde_json::to_value(&receipt.preimage) {
-            Ok(v) => v,
-            Err(e) => {
-                checks.push(VerificationCheck {
-                    kind: VerificationCheckKind::CanonicalEncodingValid,
-                    status: BilStatus::Fail,
-                });
-                findings.push(Finding {
-                    priority: FindingPriority::P0,
-                    message: format!("Failed to serialize preimage to JSON: {}", e),
-                });
-                return VerificationReport {
-                    status: BilStatus::Fail,
-                    receipt_id: Some(receipt.preimage.receipt_id.clone()),
-                    profile: Some(receipt.preimage.profile.clone()),
-                    checks,
-                    findings,
-                };
-            }
-        };
-
-        let preimage_bil_value = match bil_canonical::BilValue::try_from(&preimage_json) {
-            Ok(v) => v,
-            Err(e) => {
-                checks.push(VerificationCheck {
-                    kind: VerificationCheckKind::CanonicalEncodingValid,
-                    status: BilStatus::Fail,
-                });
-                findings.push(Finding {
-                    priority: FindingPriority::P0,
-                    message: format!("Failed to convert preimage to canonical value: {}", e),
-                });
-                return VerificationReport {
-                    status: BilStatus::Fail,
-                    receipt_id: Some(receipt.preimage.receipt_id.clone()),
-                    profile: Some(receipt.preimage.profile.clone()),
-                    checks,
-                    findings,
-                };
-            }
-        };
-
-        let canonical_bytes = match bil_canonical::encode_canonical(&preimage_bil_value) {
+        let preimage = receipt.signing_preimage();
+        let canonical_bytes = match preimage.to_canonical_bytes() {
             Ok(b) => b,
             Err(e) => {
                 checks.push(VerificationCheck {
@@ -116,8 +73,8 @@ impl VerificationEngine {
                 });
                 return VerificationReport {
                     status: BilStatus::Fail,
-                    receipt_id: Some(receipt.preimage.receipt_id.clone()),
-                    profile: Some(receipt.preimage.profile.clone()),
+                    receipt_id: Some(preimage.receipt_id.clone()),
+                    profile: Some(preimage.profile.clone()),
                     checks,
                     findings,
                 };
@@ -151,59 +108,38 @@ impl VerificationEngine {
         // 1. Check Signature
         // In a real implementation, we would look up the public key based on the signer ID
         // For now, we assume the signer ID is the hex-encoded public key for the software dev signer
-        // If it's not a valid hex string (like "sdk-issuer-001"), we'll just check if the signature is present
-        // to avoid failing the mock tests.
-        let public_key_str = &receipt.preimage.signer.0;
-        if hex::decode(public_key_str).is_ok() {
-            let public_key = bil_signers::PublicKeyRef(public_key_str.clone());
-            match verifier.verify_signature(&public_key, &canonical_bytes, &receipt.signature) {
-                Ok(_) => {
-                    checks.push(VerificationCheck {
-                        kind: VerificationCheckKind::SignatureValid,
-                        status: BilStatus::Pass,
-                    });
-                }
-                Err(e) => {
-                    checks.push(VerificationCheck {
-                        kind: VerificationCheckKind::SignatureValid,
-                        status: BilStatus::Fail,
-                    });
-                    findings.push(Finding {
-                        priority: FindingPriority::P0,
-                        message: format!("Signature verification failed: {}", e),
-                    });
-                    overall_status = BilStatus::Fail;
-                }
-            }
-        } else {
-            // Mock verification for non-hex signer IDs
-            if !receipt.signature.0.is_empty() {
+        let verifier = bil_signers::SoftwareDevSignatureVerifier;
+        let public_key = bil_signers::PublicKeyRef(preimage.signer.0.clone());
+        match verifier.verify_signature(&public_key, &canonical_bytes, &receipt.signature) {
+            Ok(_) => {
                 checks.push(VerificationCheck {
                     kind: VerificationCheckKind::SignatureValid,
                     status: BilStatus::Pass,
                 });
-            } else {
+            }
+            Err(e) => {
                 checks.push(VerificationCheck {
                     kind: VerificationCheckKind::SignatureValid,
                     status: BilStatus::Fail,
                 });
                 findings.push(Finding {
                     priority: FindingPriority::P0,
-                    message: "Signature is empty".to_string(),
+                    message: format!("Signature verification failed: {}", e),
                 });
                 overall_status = BilStatus::Fail;
             }
         }
 
         // 2. Check Assurance Level
-        if receipt.preimage.assurance_level == bil_core::AssuranceLevel::L0SoftwareDev {
+        if preimage.assurance_level == bil_core::AssuranceLevel::L0SoftwareDev {
             checks.push(VerificationCheck {
                 kind: VerificationCheckKind::AssuranceLevelValid,
                 status: BilStatus::Warn,
             });
             findings.push(Finding {
                 priority: FindingPriority::P2,
-                message: "Receipt is signed with L0SoftwareDev key. Not suitable for production.".to_string(),
+                message: "Receipt is signed with L0SoftwareDev key. Not suitable for production."
+                    .to_string(),
             });
             if overall_status == BilStatus::Pass {
                 overall_status = BilStatus::Warn;
@@ -216,7 +152,7 @@ impl VerificationEngine {
         }
 
         // 3. Check Event Refs
-        if receipt.preimage.event_refs.is_empty() {
+        if preimage.event_refs.is_empty() {
             checks.push(VerificationCheck {
                 kind: VerificationCheckKind::EvidenceRefsPresent, // Reusing this for events for now
                 status: BilStatus::Warn,
@@ -228,10 +164,15 @@ impl VerificationEngine {
             if overall_status == BilStatus::Pass {
                 overall_status = BilStatus::Warn;
             }
+        } else {
+            checks.push(VerificationCheck {
+                kind: VerificationCheckKind::EvidenceRefsPresent,
+                status: BilStatus::Pass,
+            });
         }
 
         // 3.5 Check Evidence Root
-        if receipt.preimage.evidence_root.is_none() {
+        if preimage.evidence_root.is_none() {
             checks.push(VerificationCheck {
                 kind: VerificationCheckKind::MerkleRootValid,
                 status: BilStatus::Warn,
@@ -251,7 +192,7 @@ impl VerificationEngine {
         }
 
         // 4. Check Authority Refs
-        if receipt.preimage.authority_refs.is_empty() {
+        if preimage.authority_refs.is_empty() {
             checks.push(VerificationCheck {
                 kind: VerificationCheckKind::AuthorityRefsPresent,
                 status: BilStatus::Warn,
@@ -263,10 +204,15 @@ impl VerificationEngine {
             if overall_status == BilStatus::Pass {
                 overall_status = BilStatus::Warn;
             }
+        } else {
+            checks.push(VerificationCheck {
+                kind: VerificationCheckKind::AuthorityRefsPresent,
+                status: BilStatus::Pass,
+            });
         }
 
         // 5. Check Policy Refs
-        if receipt.preimage.policy_refs.is_empty() {
+        if preimage.policy_refs.is_empty() {
             checks.push(VerificationCheck {
                 kind: VerificationCheckKind::PolicyRefsPresent,
                 status: BilStatus::Warn,
@@ -278,6 +224,11 @@ impl VerificationEngine {
             if overall_status == BilStatus::Pass {
                 overall_status = BilStatus::Warn;
             }
+        } else {
+            checks.push(VerificationCheck {
+                kind: VerificationCheckKind::PolicyRefsPresent,
+                status: BilStatus::Pass,
+            });
         }
 
         // 6. Check Replay Determinism (Placeholder)
@@ -290,8 +241,8 @@ impl VerificationEngine {
 
         VerificationReport {
             status: overall_status,
-            receipt_id: Some(receipt.preimage.receipt_id.clone()),
-            profile: Some(receipt.preimage.profile.clone()),
+            receipt_id: Some(preimage.receipt_id.clone()),
+            profile: Some(preimage.profile.clone()),
             checks,
             findings,
         }

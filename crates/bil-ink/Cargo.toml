@@ -12,4 +12,5 @@ bil-core = { path = "../bil-core" }
 bil-canonical = { path = "../bil-canonical" }
 bil-mir = { path = "../bil-mir" }
 serde.workspace = true
+serde_json.workspace = true
 thiserror.workspace = true

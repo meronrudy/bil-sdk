@@ -1,39 +1,54 @@
-# SBA Express Evidence Demo: Cross-Platform Evidence Registry for AI-Assisted Small Business Lending
+# SBA Express Evidence Demo
 
-This demo is a non-production, synthetic scenario showing how `bil-sdk`
-can issue and verify INK receipts for a multi-vendor small-business lending workflow.
+This demo is a non-production, synthetic scenario showing how `bil-sdk` can
+issue and verify INK receipts for a multi-vendor small-business lending
+workflow.
 
-This scenario is designed for a Live Oak-style small business lending design-partner conversation.
-
-The scenario is inspired by the type of event chain that can exist across:
-
-- digital banking / consent capture
-- identity and KYB checks
-- AI-native loan origination
-- document extraction
-- credit analysis
-- human underwriting review
-- final loan decisioning
-
-No real customer data, bank data, vendor secrets, or production credentials are used.
+The scenario is designed for a Live Oak-style design-partner conversation, but
+it does not use real Live Oak data, customer data, vendor secrets, production
+credentials, or endorsement language.
 
 ## Demo Thesis
 
 Vendors execute the workflow. BIL / INK preserves the evidence trail.
 
-## What this demo proves
+## What This Demo Proves
 
 - A synthetic multi-vendor lending trace can be normalized into BIL MIR.
 - The MIR graph can be hashed.
 - An INK receipt can be issued.
 - The receipt can be signed using Ed25519.
-- The verifier can detect signature validity and missing assurance metadata.
-- A markdown explanation can summarize the evidence trail.
+- The verifier can check canonical commitment and signature validity.
+- A markdown explanation can summarize verification findings.
 
-## Current limitations
+## Run The Demo
 
-- Evidence Merkle root is not yet populated.
-- Replay transition hashing is mocked.
-- Not all verification checks are implemented.
-- CLI commands are under active development.
+```bash
+cargo run -p bil-cli -- mock sba-express-evidence \
+  --out demos/sba-express-evidence/fixtures/live_oak_sba_express_trace.json
+
+cargo run -p bil-cli -- issue \
+  --input demos/sba-express-evidence/fixtures/live_oak_sba_express_trace.json \
+  --out demos/sba-express-evidence/expected/issued_receipt.json \
+  --capability assurance-receipt
+
+cargo run -p bil-cli -- verify \
+  --receipt demos/sba-express-evidence/expected/issued_receipt.json \
+  --out demos/sba-express-evidence/expected/verification_report.json \
+  --pretty
+
+cargo run -p bil-cli -- explain \
+  --receipt demos/sba-express-evidence/expected/issued_receipt.json \
+  --report demos/sba-express-evidence/expected/verification_report.json \
+  --out demos/sba-express-evidence/expected/audit_replay_bundle.md
+```
+
+The scripts in `scripts/` run the issue, verify, and explain steps.
+
+## Current Limitations
+
 - This is not a production compliance system.
+- Replay transition hashing is still mocked.
+- The L0 software signer is not suitable for production.
+- Full Merkle inclusion proof generation and verification are not claimed here.
+- The fixtures are synthetic and intentionally not vendor-authentic payloads.

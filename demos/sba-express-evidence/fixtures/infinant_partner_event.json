@@ -1,0 +1,25 @@
+{
+  "event_id": "evt_infinant_partner_001",
+  "event_type": "PARTNER_ROUTE_OBSERVED",
+  "vendor_system": "INFINANT_STYLE_EMBEDDED_BANKING",
+  "workflow_stage": "PARTNER_ROUTE",
+  "borrower_or_business_ref": "hmac_demo_business_2026",
+  "loan_or_account_ref": "hmac_demo_loan_2026",
+  "timestamp": "2026-07-03T12:00:00Z",
+  "actor_type": "PARTNER_PLATFORM",
+  "input_payload_hash": "demo_input_hash_evt_infinant_partner_001",
+  "output_payload_hash": "demo_output_hash_evt_infinant_partner_001",
+  "policy_refs": [
+    "PARTNER_ROUTING_SYNTHETIC_POLICY_V1"
+  ],
+  "model_refs": [],
+  "vendor_rule_refs": [],
+  "human_review_refs": [],
+  "exception_refs": [],
+  "consent_refs": [
+    "receipt_apiture_consent_001"
+  ],
+  "source_system_refs": [
+    "synthetic_infinant_style_embedded_banking"
+  ]
+}

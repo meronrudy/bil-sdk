@@ -9,11 +9,15 @@ description = "Command-line interface for BIL SDK"
 
 [dependencies]
 bil-core = { path = "../bil-core" }
+bil-canonical = { path = "../bil-canonical" }
 bil-mir = { path = "../bil-mir" }
 bil-mock = { path = "../bil-mock" }
+bil-replay = { path = "../bil-replay" }
 bil-sdk = { path = "../bil-sdk" }
 bil-ink = { path = "../bil-ink" }
+bil-verify = { path = "../bil-verify" }
 bil-conformance = { path = "../bil-conformance" }
 anyhow.workspace = true
+serde.workspace = true
 serde_json.workspace = true
 clap = { version = "4.6.1", features = ["derive"] }
