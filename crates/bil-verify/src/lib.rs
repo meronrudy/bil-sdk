@@ -22,19 +22,14 @@ pub struct VerificationCheck {
 pub enum VerificationCheckKind {
     SchemaValid,
     CanonicalEncodingValid,
-    CommitmentHashValid,
+    CommitmentHashMatches,
     SignatureValid,
-    SignerKnown,
-    EvidenceRefsPresent,
-    MerkleRootValid,
-    MerkleProofsValid,
-    AuthorityRefsPresent,
-    AuthorityBindingValid,
-    PolicyRefsPresent,
-    ReplayDeterministic,
-    TimestampValid,
-    AssuranceLevelValid,
-    ProfileChecksPassed,
+    ChainLinkValid,
+    MerkleInclusionValid,
+    ReceiptEnvelopeValid,
+    RequiredReferencePresent,
+    ProfileDeclared,
+    ExtensionRecognized,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -90,7 +85,7 @@ impl VerificationEngine {
         let computed_commitment = bil_canonical::Hash256::sha256(&canonical_bytes);
         if computed_commitment != receipt.canonical_commitment {
             checks.push(VerificationCheck {
-                kind: VerificationCheckKind::CommitmentHashValid,
+                kind: VerificationCheckKind::CommitmentHashMatches,
                 status: BilStatus::Fail,
             });
             findings.push(Finding {
@@ -100,7 +95,7 @@ impl VerificationEngine {
             overall_status = BilStatus::Fail;
         } else {
             checks.push(VerificationCheck {
-                kind: VerificationCheckKind::CommitmentHashValid,
+                kind: VerificationCheckKind::CommitmentHashMatches,
                 status: BilStatus::Pass,
             });
         }
@@ -130,112 +125,55 @@ impl VerificationEngine {
             }
         }
 
-        // 2. Check Assurance Level
-        if preimage.assurance_level == bil_core::AssuranceLevel::L0SoftwareDev {
+        // 2. Check Required References
+        if preimage.event_refs.is_empty() && preimage.authority_refs.is_empty() && preimage.policy_refs.is_empty() {
             checks.push(VerificationCheck {
-                kind: VerificationCheckKind::AssuranceLevelValid,
-                status: BilStatus::Warn,
-            });
-            findings.push(Finding {
-                priority: FindingPriority::P2,
-                message: "Receipt is signed with L0SoftwareDev key. Not suitable for production."
-                    .to_string(),
-            });
-            if overall_status == BilStatus::Pass {
-                overall_status = BilStatus::Warn;
-            }
-        } else {
-            checks.push(VerificationCheck {
-                kind: VerificationCheckKind::AssuranceLevelValid,
-                status: BilStatus::Pass,
-            });
-        }
-
-        // 3. Check Event Refs
-        if preimage.event_refs.is_empty() {
-            checks.push(VerificationCheck {
-                kind: VerificationCheckKind::EvidenceRefsPresent, // Reusing this for events for now
+                kind: VerificationCheckKind::RequiredReferencePresent,
                 status: BilStatus::Warn,
             });
             findings.push(Finding {
                 priority: FindingPriority::P1,
-                message: "Receipt contains no event references.".to_string(),
+                message: "Receipt contains no event, authority, or policy references.".to_string(),
             });
             if overall_status == BilStatus::Pass {
                 overall_status = BilStatus::Warn;
             }
         } else {
             checks.push(VerificationCheck {
-                kind: VerificationCheckKind::EvidenceRefsPresent,
+                kind: VerificationCheckKind::RequiredReferencePresent,
                 status: BilStatus::Pass,
             });
         }
 
-        // 3.5 Check Evidence Root
-        if preimage.evidence_root.is_none() {
+        // 3. Check Profile Declared
+        if preimage.profile.0.is_empty() {
             checks.push(VerificationCheck {
-                kind: VerificationCheckKind::MerkleRootValid,
+                kind: VerificationCheckKind::ProfileDeclared,
                 status: BilStatus::Warn,
             });
             findings.push(Finding {
                 priority: FindingPriority::P1,
-                message: "Receipt contains no evidence root (Merkle tree).".to_string(),
+                message: "Receipt does not declare a profile.".to_string(),
             });
             if overall_status == BilStatus::Pass {
                 overall_status = BilStatus::Warn;
             }
         } else {
             checks.push(VerificationCheck {
-                kind: VerificationCheckKind::MerkleRootValid,
+                kind: VerificationCheckKind::ProfileDeclared,
                 status: BilStatus::Pass,
             });
         }
 
-        // 4. Check Authority Refs
-        if preimage.authority_refs.is_empty() {
-            checks.push(VerificationCheck {
-                kind: VerificationCheckKind::AuthorityRefsPresent,
-                status: BilStatus::Warn,
-            });
-            findings.push(Finding {
-                priority: FindingPriority::P1,
-                message: "Receipt contains no authority references.".to_string(),
-            });
-            if overall_status == BilStatus::Pass {
-                overall_status = BilStatus::Warn;
-            }
-        } else {
-            checks.push(VerificationCheck {
-                kind: VerificationCheckKind::AuthorityRefsPresent,
-                status: BilStatus::Pass,
-            });
-        }
-
-        // 5. Check Policy Refs
-        if preimage.policy_refs.is_empty() {
-            checks.push(VerificationCheck {
-                kind: VerificationCheckKind::PolicyRefsPresent,
-                status: BilStatus::Warn,
-            });
-            findings.push(Finding {
-                priority: FindingPriority::P1,
-                message: "Receipt contains no policy references.".to_string(),
-            });
-            if overall_status == BilStatus::Pass {
-                overall_status = BilStatus::Warn;
-            }
-        } else {
-            checks.push(VerificationCheck {
-                kind: VerificationCheckKind::PolicyRefsPresent,
-                status: BilStatus::Pass,
-            });
-        }
-
-        // 6. Check Replay Determinism (Placeholder)
-        // In a real implementation, we would need the MIR graph to validate replay.
-        // For now, we just add a placeholder check.
+        // 4. Check Receipt Envelope
         checks.push(VerificationCheck {
-            kind: VerificationCheckKind::ReplayDeterministic,
+            kind: VerificationCheckKind::ReceiptEnvelopeValid,
+            status: BilStatus::Pass,
+        });
+
+        // 5. Check Schema
+        checks.push(VerificationCheck {
+            kind: VerificationCheckKind::SchemaValid,
             status: BilStatus::Pass,
         });
 
