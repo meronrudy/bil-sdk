@@ -9,7 +9,7 @@ The public verifier performs the following checks:
 - `SchemaValid`: The receipt JSON/CBOR matches the expected schema.
 - `CanonicalEncodingValid`: The preimage can be deterministically encoded.
 - `CommitmentHashMatches`: The `canonical_commitment` matches the hash of the encoded preimage.
-- `SignatureValid`: The signature is valid for the `canonical_commitment` and the declared signer.
+- `SignatureValid`: The signature is valid for the canonical receipt preimage and the declared signer.
 - `ChainLinkValid`: (If applicable) The receipt correctly links to a previous state.
 - `MerkleInclusionValid`: The `evidence_root` correctly commits to the provided evidence leaves.
 - `ReceiptEnvelopeValid`: The overall envelope structure is correct.
@@ -19,6 +19,6 @@ The public verifier performs the following checks:
 
 ## Domain-Specific Verification
 
-The public verifier **does not** perform domain-specific checks. For example, it does not check if an SBA loan application has the required financial spreading evidence.
+The public verifier **does not** perform domain-specific checks. For example, it does not check whether a declared domain workflow has all profile-specific evidence required by that domain.
 
-Domain-specific verification is the responsibility of higher-level, domain-specific verifiers (e.g., a BAINK profile verifier) that build on top of the structural verification provided by `bil-verify`.
+Domain-specific verification is the responsibility of higher-level profile verifiers that build on top of the structural verification provided by `bil-verify`.
