@@ -5,14 +5,10 @@ members = [
     "crates/bil-mir",
     "crates/bil-ink",
     "crates/bil-signers",
-    "crates/bil-replay",
     "crates/bil-verify",
-    "crates/bil-explain",
     "crates/bil-conformance",
-    "crates/bil-mock",
     "crates/bil-sdk",
-    "crates/bil-cli",
-    "python"
+    "crates/bil-cli"
 ]
 resolver = "2"
 
@@ -22,7 +18,7 @@ edition = "2021"
 authors = ["BIL SDK Contributors"]
 license = "MIT OR Apache-2.0"
 repository = "https://github.com/bankabil/bil-sdk"
-description = "Bank Institutional Liability (BIL) SDK"
+description = "Base Institutional Language (BIL) SDK"
 
 [workspace.dependencies]
 serde = { version = "1.0", features = ["derive"] }
