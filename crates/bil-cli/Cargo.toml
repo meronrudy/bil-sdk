@@ -1,4 +1,4 @@
-[package]
+pusj[package]
 name = "bil-cli"
 version.workspace = true
 edition.workspace = true
@@ -11,8 +11,6 @@ description = "Command-line interface for BIL SDK"
 bil-core = { path = "../bil-core" }
 bil-canonical = { path = "../bil-canonical" }
 bil-mir = { path = "../bil-mir" }
-bil-mock = { path = "../bil-mock" }
-bil-replay = { path = "../bil-replay" }
 bil-sdk = { path = "../bil-sdk" }
 bil-ink = { path = "../bil-ink" }
 bil-verify = { path = "../bil-verify" }

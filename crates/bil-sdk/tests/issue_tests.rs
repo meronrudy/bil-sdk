@@ -1,17 +1,17 @@
 use bil_core::AssuranceLevel;
 use bil_ink::CapabilityCode;
-use bil_mock::SyntheticProfile;
-use bil_sdk::{Bil, DemoProfile};
+use bil_sdk::{Bil, DemoProfile, SyntheticProfile};
 
 #[test]
 fn issue_populates_evidence_root_when_evidence_exists() {
-    let graph = Bil::mock(SyntheticProfile::BankBranch)
+    let graph = Bil::mock(SyntheticProfile::HumanOverride)
         .with_seed(2026)
         .include_ai_assist(true)
         .include_human_review(true)
         .build()
         .unwrap();
 
+    assert_eq!(graph.profile.0, "human_override");
     assert!(!graph.evidence.is_empty());
 
     let artifact = Bil::issue(graph, CapabilityCode("AssuranceReceipt".to_string())).unwrap();
@@ -32,7 +32,7 @@ fn issue_populates_evidence_root_when_evidence_exists() {
 
 #[test]
 fn evidence_mutation_changes_merkle_root() {
-    let graph_a = Bil::mock(SyntheticProfile::BankBranch)
+    let graph_a = Bil::mock(SyntheticProfile::HumanOverride)
         .with_seed(2026)
         .build()
         .unwrap();
@@ -54,7 +54,7 @@ fn evidence_mutation_changes_merkle_root() {
 
 #[test]
 fn verifier_fails_when_canonical_commitment_is_mutated() {
-    let demo = Bil::demo(DemoProfile::BankBranch).unwrap();
+    let demo = Bil::demo(DemoProfile::HumanOverride).unwrap();
     let mut receipt = demo.receipt().unwrap();
 
     receipt.canonical_commitment = bil_canonical::Hash256::zero();
@@ -66,12 +66,11 @@ fn verifier_fails_when_canonical_commitment_is_mutated() {
 
 #[test]
 fn verifier_accepts_issued_receipt_signature() {
-    let demo = Bil::demo(DemoProfile::BankBranch).unwrap();
+    let demo = Bil::demo(DemoProfile::HumanOverride).unwrap();
     let receipt = demo.receipt().unwrap();
 
     let report = Bil::verify(&receipt).unwrap();
 
-    // The overall status might be Warn due to L0SoftwareDev, but it shouldn't be Fail
     assert_ne!(
         report.status,
         bil_core::BilStatus::Fail,
@@ -85,7 +84,7 @@ fn verifier_accepts_issued_receipt_signature() {
 
 #[test]
 fn demo_receipt_uses_issue_path() {
-    let demo = Bil::demo(DemoProfile::BankBranch).unwrap();
+    let demo = Bil::demo(DemoProfile::HumanOverride).unwrap();
     let receipt = demo.receipt().unwrap();
 
     assert_eq!(receipt.preimage.capability.0, "demo.receipt");

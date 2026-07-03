@@ -1,8 +1,16 @@
-use bil_core::{ActorRef, AuthorityRef, BilId, EventId, EvidenceRef, PolicyRef, ProfileId, SystemRef};
-use bil_replay::ReplayState;
+use bil_core::{
+    ActorRef, AuthorityRef, BilId, EventId, EvidenceRef, PolicyRef, ProfileId, SystemRef,
+};
 use serde::{Deserialize, Serialize};
 
-use bil_canonical::{BilCanonical, BilValue, CanonicalError};
+use bil_canonical::{BilCanonical, BilValue, CanonicalError, Hash256};
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ReplayState {
+    pub initial_state_hash: Hash256,
+    pub transition_hashes: Vec<Hash256>,
+    pub final_state_hash: Hash256,
+}
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct BilMirGraph {
@@ -23,8 +31,8 @@ pub struct BilEvent {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum BilEventKind {
+    WorkflowStarted,
     ConsentCaptured,
-    BankBranchIntakeStarted,
     DocumentReceived,
     EvidenceExtracted,
     ModelInvoked,
@@ -70,8 +78,8 @@ impl BilCanonical for BilMirGraph {
     fn to_canonical_value(&self) -> Result<BilValue, CanonicalError> {
         // For now, we just serialize to JSON and then to BilValue
         // In a real implementation, we would map the struct fields directly to BilValue
-        let json = serde_json::to_value(self)
-            .map_err(|e| CanonicalError::Encoding(e.to_string()))?;
+        let json =
+            serde_json::to_value(self).map_err(|e| CanonicalError::Encoding(e.to_string()))?;
         BilValue::try_from(&json)
     }
 }

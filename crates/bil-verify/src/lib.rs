@@ -126,7 +126,10 @@ impl VerificationEngine {
         }
 
         // 2. Check Required References
-        if preimage.event_refs.is_empty() && preimage.authority_refs.is_empty() && preimage.policy_refs.is_empty() {
+        if preimage.event_refs.is_empty()
+            && preimage.authority_refs.is_empty()
+            && preimage.policy_refs.is_empty()
+        {
             checks.push(VerificationCheck {
                 kind: VerificationCheckKind::RequiredReferencePresent,
                 status: BilStatus::Warn,

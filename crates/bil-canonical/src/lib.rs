@@ -65,7 +65,9 @@ impl Hash256 {
     }
 
     pub fn from_base64(s: &str) -> Result<Self, CanonicalError> {
-        let bytes = BASE64_STANDARD.decode(s).map_err(|e| CanonicalError::Encoding(e.to_string()))?;
+        let bytes = BASE64_STANDARD
+            .decode(s)
+            .map_err(|e| CanonicalError::Encoding(e.to_string()))?;
         if bytes.len() != 32 {
             return Err(CanonicalError::Encoding("Invalid hash length".to_string()));
         }
@@ -106,7 +108,9 @@ impl TryFrom<&serde_json::Value> for BilValue {
                 } else if let Some(u) = n.as_u64() {
                     Ok(BilValue::Integer(u as i128))
                 } else {
-                    Err(CanonicalError::Encoding("Floats are not supported in canonical BIL".to_string()))
+                    Err(CanonicalError::Encoding(
+                        "Floats are not supported in canonical BIL".to_string(),
+                    ))
                 }
             }
             serde_json::Value::String(s) => Ok(BilValue::Text(s.clone())),
@@ -146,7 +150,9 @@ fn to_ciborium_value(value: &BilValue) -> Result<ciborium::Value, CanonicalError
             } else {
                 // ciborium::Value::Integer only supports up to i128 via TryFrom, but internally it's i128.
                 // Let's just use TryInto directly.
-                Ok(ciborium::Value::Integer((*i).try_into().map_err(|_| CanonicalError::Encoding("Integer too large for CBOR".to_string()))?))
+                Ok(ciborium::Value::Integer((*i).try_into().map_err(|_| {
+                    CanonicalError::Encoding("Integer too large for CBOR".to_string())
+                })?))
             }
         }
         BilValue::Bytes(b) => Ok(ciborium::Value::Bytes(b.clone())),

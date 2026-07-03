@@ -9,7 +9,6 @@ description = "Institutional event graph for BIL SDK"
 
 [dependencies]
 bil-core = { path = "../bil-core" }
-bil-replay = { path = "../bil-replay" }
 bil-canonical = { path = "../bil-canonical" }
 serde.workspace = true
 serde_json.workspace = true

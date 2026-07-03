@@ -10,9 +10,7 @@ description = "Ergonomic Rust SDK capability layer for BIL SDK"
 [dependencies]
 bil-core = { path = "../bil-core" }
 bil-mir = { path = "../bil-mir" }
-bil-mock = { path = "../bil-mock" }
 bil-verify = { path = "../bil-verify" }
-bil-explain = { path = "../bil-explain" }
 bil-ink = { path = "../bil-ink" }
 bil-canonical = { path = "../bil-canonical" }
 bil-signers = { path = "../bil-signers" }

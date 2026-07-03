@@ -55,20 +55,24 @@ impl BilSignatureVerifier for SoftwareDevSignatureVerifier {
         // Decode public key from hex
         let pk_bytes = hex::decode(&public_key.0)
             .map_err(|e| SignatureError::Failed(format!("Invalid public key hex: {}", e)))?;
-        
+
         if pk_bytes.len() != 32 {
-            return Err(SignatureError::Failed("Invalid public key length".to_string()));
+            return Err(SignatureError::Failed(
+                "Invalid public key length".to_string(),
+            ));
         }
 
         let mut pk_array = [0u8; 32];
         pk_array.copy_from_slice(&pk_bytes);
-        
+
         let verifying_key = VerifyingKey::from_bytes(&pk_array)
             .map_err(|e| SignatureError::Failed(format!("Invalid public key: {}", e)))?;
 
         // Decode signature
         if signature.0.len() != 64 {
-            return Err(SignatureError::Failed("Invalid signature length".to_string()));
+            return Err(SignatureError::Failed(
+                "Invalid signature length".to_string(),
+            ));
         }
 
         let mut sig_array = [0u8; 64];
