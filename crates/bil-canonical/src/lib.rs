@@ -165,18 +165,18 @@ fn to_ciborium_value(value: &BilValue) -> Result<ciborium::Value, CanonicalError
             Ok(ciborium::Value::Array(cbor_arr))
         }
         BilValue::Map(map) => {
-            let mut cbor_map = Vec::with_capacity(map.len());
+            let mut cbor_entries = Vec::with_capacity(map.len());
             for (k, v) in map {
-                cbor_map.push((to_ciborium_value(k)?, to_ciborium_value(v)?));
+                let key = to_ciborium_value(k)?;
+                let value = to_ciborium_value(v)?;
+                let mut key_bytes = Vec::new();
+                ciborium::into_writer(&key, &mut key_bytes)
+                    .map_err(|e| CanonicalError::Encoding(e.to_string()))?;
+                cbor_entries.push((key_bytes, (key, value)));
             }
             // Deterministic CBOR requires keys to be sorted
-            cbor_map.sort_by(|a, b| {
-                let mut a_bytes = Vec::new();
-                let mut b_bytes = Vec::new();
-                ciborium::into_writer(&a.0, &mut a_bytes).unwrap();
-                ciborium::into_writer(&b.0, &mut b_bytes).unwrap();
-                a_bytes.cmp(&b_bytes)
-            });
+            cbor_entries.sort_by(|a, b| a.0.cmp(&b.0));
+            let cbor_map = cbor_entries.into_iter().map(|(_, entry)| entry).collect();
             Ok(ciborium::Value::Map(cbor_map))
         }
     }

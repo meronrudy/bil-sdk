@@ -117,8 +117,7 @@ impl BilSigner for SoftwareDevSigner {
     }
 
     fn public_key_ref(&self) -> PublicKeyRef {
-        // In a real implementation, this would be a proper reference (e.g., a DID or JWK)
-        // For now, we just hex-encode the public key bytes
+        // The reference signer uses the Ed25519 public key bytes as the local verifier reference.
         let pk_bytes = self.keypair.verifying_key().to_bytes();
         PublicKeyRef(hex::encode(pk_bytes))
     }

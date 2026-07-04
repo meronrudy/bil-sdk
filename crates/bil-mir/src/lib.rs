@@ -76,8 +76,8 @@ pub struct PolicyNode {
 
 impl BilCanonical for BilMirGraph {
     fn to_canonical_value(&self) -> Result<BilValue, CanonicalError> {
-        // For now, we just serialize to JSON and then to BilValue
-        // In a real implementation, we would map the struct fields directly to BilValue
+        // This public v0 path derives a canonical value from the serde shape.
+        // Dedicated field-by-field encoding can replace this once vectors settle.
         let json =
             serde_json::to_value(self).map_err(|e| CanonicalError::Encoding(e.to_string()))?;
         BilValue::try_from(&json)

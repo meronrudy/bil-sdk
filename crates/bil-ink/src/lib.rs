@@ -178,7 +178,7 @@ pub mod merkle {
                 current_level.push(hash);
             }
 
-            let root = Self::compute_root(&mut current_level);
+            let root = Self::compute_root(&current_level);
 
             Ok(Some(Self {
                 leaves,
@@ -186,7 +186,7 @@ pub mod merkle {
             }))
         }
 
-        fn compute_root(level: &mut Vec<Hash256>) -> Hash256 {
+        fn compute_root(level: &[Hash256]) -> Hash256 {
             if level.is_empty() {
                 return Hash256([0; 32]);
             }
@@ -210,7 +210,7 @@ pub mod merkle {
                 next_level.push(Hash256::sha256(&combined));
             }
 
-            Self::compute_root(&mut next_level)
+            Self::compute_root(&next_level)
         }
 
         pub fn generate_proof(&self, index: usize) -> Option<MerkleProof> {
@@ -226,7 +226,7 @@ pub mod merkle {
                 self.leaves.iter().map(|l| l.hash.clone()).collect();
 
             while current_level.len() > 1 {
-                let is_right_child = current_index % 2 != 0;
+                let is_right_child = !current_index.is_multiple_of(2);
                 let sibling_index = if is_right_child {
                     current_index - 1
                 } else {

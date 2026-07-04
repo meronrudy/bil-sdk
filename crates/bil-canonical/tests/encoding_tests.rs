@@ -168,7 +168,7 @@ fn test_json_to_bil_value() {
 #[test]
 fn test_json_float_rejection() {
     use serde_json::json;
-    let j = json!({"value": 3.14});
+    let j = json!({"value": 1.5});
     let res = BilValue::try_from(&j);
     assert!(res.is_err());
 }

@@ -100,9 +100,8 @@ impl VerificationEngine {
             });
         }
 
-        // 1. Check Signature
-        // In a real implementation, we would look up the public key based on the signer ID
-        // For now, we assume the signer ID is the hex-encoded public key for the software dev signer
+        // 1. Check Signature. The L0 software signer stores its Ed25519 public
+        // key as the signer reference so the structural verifier can validate it locally.
         let verifier = bil_signers::SoftwareDevSignatureVerifier;
         let public_key = bil_signers::PublicKeyRef(preimage.signer.0.clone());
         match verifier.verify_signature(&public_key, &canonical_bytes, &receipt.signature) {
