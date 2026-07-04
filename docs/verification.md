@@ -1,29 +1,28 @@
 # Verification
 
-The verifier (`bil-verify`) is the heart of the bank/auditor trust story.
+`bil-verify` performs structural verification of INK receipts. It verifies the
+receipt envelope and cryptographic consistency, not domain profile semantics.
 
-Minimum checks:
+Current checks include:
 
-* SchemaValid
-* CanonicalEncodingValid
-* CommitmentHashValid
-* SignatureValid
-* SignerKnown
-* EvidenceRefsPresent
-* MerkleRootValid
-* MerkleProofsValid
-* AuthorityRefsPresent
-* AuthorityBindingValid
-* PolicyRefsPresent
-* ReplayDeterministic
-* TimestampValid
-* AssuranceLevelValid
-* ProfileChecksPassed
+- `CanonicalEncodingValid`
+- `CommitmentHashMatches`
+- `SignatureValid`
+- `RequiredReferencePresent`
+- `ProfileDeclared`
+- `ReceiptEnvelopeValid`
+- `SchemaValid`
 
 Status rules:
 
 ```text
-P0 finding → FAIL
-P1 finding → WARN unless profile says fail
-P2 finding → WARN or PASS_WITH_WARNINGS
+P0 finding -> Fail
+P1 finding -> Warn unless a structural failure already occurred
+P2 finding -> Warn or Pass depending on the check
 ```
+
+The L0 software signer stores its Ed25519 public key as the receipt signer
+reference so the public verifier can validate signatures locally.
+
+Domain-specific verification should run after structural verification and
+should not be added to `bil-verify`.

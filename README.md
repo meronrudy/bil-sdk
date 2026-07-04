@@ -63,7 +63,9 @@ cargo run -p bil-cli -- explain \
 ```bash
 cargo metadata --no-deps --format-version 1
 cargo fmt --check
+cargo clippy --all-targets --all-features -- -D warnings
 cargo test
+cargo run -p bil-cli -- conformance all
 ```
 
 Generated artifacts should stay out of the public repo unless they are explicit
