@@ -1,5 +1,10 @@
 # Repository Split Blueprint: Public BIL, Private BAINK
 
+Historical background only: this blueprint captures an earlier public/private
+split design. It is not the current repo-topology source of truth. For the
+current repository shape, support tiers, and LOC baselines, see
+[`docs/repo-assessment.md`](../repo-assessment.md).
+
 This document is the authoritative blueprint for splitting the current
 monolithic repository into a public open-source repository named `bil` and a
 private commercial repository named `bankabil`.

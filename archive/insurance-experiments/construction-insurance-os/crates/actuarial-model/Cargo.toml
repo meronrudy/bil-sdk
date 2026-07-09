@@ -1,0 +1,17 @@
+[package]
+name = "actuarial-model"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "Actuarial loss modeling: Poisson/Gamma/Tweedie GLMs via IRLS"
+
+[dependencies]
+ctw-core = { workspace = true, features = ["std", "serde"] }
+actuarial-core = { workspace = true }
+nalgebra = { workspace = true }
+serde = { workspace = true }
+thiserror = { workspace = true }
+approx = { workspace = true }
+
+[lints]
+workspace = true

@@ -1,0 +1,15 @@
+[package]
+name = "actuarial-pricing"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "Expense loading, credibility, experience rating, premium"
+
+[dependencies]
+ctw-core = { workspace = true, features = ["std", "serde"] }
+actuarial-core = { workspace = true }
+serde = { workspace = true }
+thiserror = { workspace = true }
+
+[lints]
+workspace = true

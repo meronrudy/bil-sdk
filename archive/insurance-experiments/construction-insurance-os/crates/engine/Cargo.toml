@@ -1,0 +1,28 @@
+[package]
+name = "engine"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "End-to-end pipeline orchestration"
+
+[dependencies]
+ctw-core = { workspace = true, features = ["std", "serde"] }
+ctw-geo = { workspace = true, features = ["std", "serde"] }
+ctw-machine = { workspace = true, features = ["std", "serde"] }
+ctw-ingest = { workspace = true, features = ["std", "serde"] }
+ctw-risk = { workspace = true, features = ["std", "serde"] }
+ctw-exposure = { workspace = true, features = ["std", "serde"] }
+ctw-context = { workspace = true, features = ["std", "serde"] }
+ctw-serde = { workspace = true }
+actuarial-core = { workspace = true }
+actuarial-model = { workspace = true }
+actuarial-pricing = { workspace = true }
+actuarial-reserving = { workspace = true }
+actuarial-explain = { workspace = true }
+actuarial-governance = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+anyhow = { workspace = true }
+
+[lints]
+workspace = true

@@ -4,6 +4,10 @@ BIL (Base Institutional Language) is an open-source thin-waist evidence grammar 
 
 BIL does not execute workflows, make decisions, run compliance programs, or replace domain systems. It defines a minimal common evidence layer that allows heterogeneous systems to emit canonical proof objects and independent verifiers to test them.
 
+In this repository, the thin waist is the root Cargo workspace boundary, not a
+claim that every tracked path is part of the public core. Repo-level support
+tiers and LOC totals are documented in [repo-assessment.md](repo-assessment.md).
+
 The core architecture is:
 
 1. Many systems execute.

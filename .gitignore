@@ -4,12 +4,15 @@
 
 # Local insurance sandboxes
 /Insurance/*
+!/Insurance/README.md
 !/Insurance/AiSSURANCE/
 !/Insurance/AiSSURANCE/**
 /Insurance/**/target/
 /Insurance/**/.DS_Store
 /Insurance/AiSSURANCE/.git
 /Insurance/AiSSURANCE/.git*
+/archive/**/target/
+**/.git/
 
 # Generated artifacts
 /artifacts/

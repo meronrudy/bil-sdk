@@ -1,0 +1,20 @@
+[package]
+name = "ctw-ingest"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "Sensor data ingestion and canonical observation pipeline"
+
+[features]
+default = []
+std = ["ctw-core/std"]
+serde = ["dep:serde", "ctw-core/serde"]
+
+[dependencies]
+ctw-core = { workspace = true }
+ctw-geo = { workspace = true }
+ctw-machine = { workspace = true }
+serde = { workspace = true, optional = true }
+
+[lints]
+workspace = true

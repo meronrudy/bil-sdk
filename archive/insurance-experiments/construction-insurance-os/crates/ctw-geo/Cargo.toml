@@ -1,0 +1,18 @@
+[package]
+name = "ctw-geo"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "Site geometry, zones, and spatial primitives"
+
+[features]
+default = []
+std = ["ctw-core/std"]
+serde = ["dep:serde", "ctw-core/serde"]
+
+[dependencies]
+ctw-core = { workspace = true }
+serde = { workspace = true, optional = true }
+
+[lints]
+workspace = true

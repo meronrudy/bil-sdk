@@ -3,6 +3,11 @@
 This repository can integrate `Insurance/AiSSURANCE` as a **local downstream**
 of BIL without folding any insurance-specific logic into the public thin waist.
 
+At the repo level, this is the supported downstream lane inside a broader tree
+that also contains the public workspace, a live experiment, and historical
+archive material. See [repo-assessment.md](repo-assessment.md) for the current
+support tiers and Rust LOC breakdown.
+
 ## Boundary
 
 - `bil-core`, `bil-mir`, `bil-canonical`, `bil-ink`, `bil-signers`,
@@ -10,7 +15,7 @@ of BIL without folding any insurance-specific logic into the public thin waist.
 - `integrations/bil-aissurance-bridge` owns the AiSSURANCE-specific mapping from
   platform-demo artifacts into BIL MIR, receipts, and local manifests.
 - The bridge crate is intentionally **excluded** from the root workspace so
-  default `cargo test` stays aligned to the public BIL crates.
+  default `cargo test` stays aligned to the public BIL workspace.
 - `bil-verify` remains structural only. AiSSURANCE semantics live in profile
   IDs, capability codes, authority refs, policy refs, evidence kinds, and the
   local evidence manifests written by the bridge.

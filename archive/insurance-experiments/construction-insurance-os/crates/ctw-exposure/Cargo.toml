@@ -1,0 +1,18 @@
+[package]
+name = "ctw-exposure"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "Exposure measurement: machine-hours, cycles, tonnage"
+
+[features]
+default = []
+std = ["ctw-core/std"]
+serde = ["dep:serde", "ctw-core/serde"]
+
+[dependencies]
+ctw-core = { workspace = true }
+serde = { workspace = true, optional = true }
+
+[lints]
+workspace = true

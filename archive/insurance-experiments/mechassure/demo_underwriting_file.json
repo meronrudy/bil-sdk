@@ -1,0 +1,23 @@
+{
+  "artifact_type": "ai_underwriting_file",
+  "schema_version": "0.1.0",
+  "domain": "construction",
+  "insured_system": "Demo Autonomous Excavator v2.1",
+  "period": "2024-01-01 to 2024-12-31",
+  "exposure": {
+    "autonomous_operation_hours": 1500,
+    "critical_task_count": 450,
+    "human_machine_interaction_hours": 300
+  },
+  "risk_statistics": {
+    "emergency_stops": 5,
+    "exclusion_zone_violations": 2,
+    "human_proximity_events": 12,
+    "telemetry_completeness_score": 0.98
+  },
+  "control_evidence": {},
+  "evidence_quality": {},
+  "underwriting_flags": [],
+  "actuarial_export": {},
+  "audit_manifest": {}
+}

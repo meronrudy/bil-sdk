@@ -1,0 +1,19 @@
+[package]
+name = "ctw-risk"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "Risk event detection, accumulation, and feature windowing"
+
+[features]
+default = []
+std = ["ctw-core/std"]
+serde = ["dep:serde", "ctw-core/serde"]
+
+[dependencies]
+ctw-core = { workspace = true }
+ctw-ingest = { workspace = true }
+serde = { workspace = true, optional = true }
+
+[lints]
+workspace = true

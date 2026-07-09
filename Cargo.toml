@@ -18,7 +18,7 @@ version = "0.1.0"
 edition = "2021"
 authors = ["BIL SDK Contributors"]
 license = "MIT OR Apache-2.0"
-repository = "https://github.com/meronrudy/bil"
+repository = "https://github.com/meronrudy/bil-sdk"
 readme = "README.md"
 description = "Base Institutional Language (BIL) SDK"
 

@@ -1,0 +1,18 @@
+[package]
+name = "ctw-context"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "Operating context: site type, weather, task, operator"
+
+[features]
+default = []
+std = ["ctw-core/std"]
+serde = ["dep:serde", "ctw-core/serde"]
+
+[dependencies]
+ctw-core = { workspace = true }
+serde = { workspace = true, optional = true }
+
+[lints]
+workspace = true

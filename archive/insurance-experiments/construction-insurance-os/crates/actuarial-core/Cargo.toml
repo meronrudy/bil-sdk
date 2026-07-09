@@ -1,0 +1,16 @@
+[package]
+name = "actuarial-core"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "Actuarial domain types: policies, claims, coverage, loss"
+
+[dependencies]
+ctw-core = { workspace = true, features = ["std", "serde"] }
+serde = { workspace = true }
+chrono = { workspace = true }
+uuid = { workspace = true }
+thiserror = { workspace = true }
+
+[lints]
+workspace = true

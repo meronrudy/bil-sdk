@@ -1,0 +1,17 @@
+[package]
+name = "ctw-serde"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "Serialization support for the construction thin waist"
+
+[dependencies]
+ctw-core = { workspace = true, features = ["serde"] }
+ctw-risk = { workspace = true, features = ["serde"] }
+ctw-exposure = { workspace = true, features = ["serde"] }
+ctw-context = { workspace = true, features = ["serde"] }
+serde = { workspace = true }
+serde_json = { workspace = true }
+
+[lints]
+workspace = true

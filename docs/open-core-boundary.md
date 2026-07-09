@@ -1,14 +1,15 @@
 # Open Core Boundary
 
-This document defines the boundary between the open-source `bil` repository and private/commercial repositories (like `bankabil`).
+This document defines the boundary between the public BIL workspace in this
+repository and private/commercial repositories such as `bankabil`.
 
 ## The Rule
 
 **BIL is the open-source thin waist for institutional evidence. INK is the signed receipt artifact generated from BIL-compatible evidence. BAINK is Bankabil’s commercial banking registry that applies BIL and INK to AI-enabled small-business banking workflows.**
 
-## Public Repo (`bil`)
+## Public Workspace (`bil`)
 
-The public repository contains only domain-neutral, structural primitives.
+The public workspace contains only domain-neutral, structural primitives.
 
 - **Core Grammar:** `bil-core` (events, refs, actors, subjects, policies)
 - **Compiler/IR:** `bil-mir` (graph representation)
@@ -18,6 +19,13 @@ The public repository contains only domain-neutral, structural primitives.
 - **Verification:** `bil-verify` (structural checks only)
 - **Tooling:** `bil-cli`, `bil-sdk` (generic developer tools)
 - **Testing:** `bil-conformance` (standard vectors)
+
+This repository also contains a supported local downstream
+(`Insurance/AiSSURANCE` plus `integrations/bil-aissurance-bridge`), a live
+standalone experiment (`experiments/axiom-tui`), and archival reference
+material. Those paths are outside the open-core workspace contract. The
+repo-wide support tiers and LOC split are documented in
+[repo-assessment.md](repo-assessment.md).
 
 ## Private Repositories (e.g., `bankabil`)
 

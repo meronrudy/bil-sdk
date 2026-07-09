@@ -1,0 +1,18 @@
+[package]
+name = "ctw-machine"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "Machine capability traits and equipment taxonomy"
+
+[features]
+default = []
+std = ["ctw-core/std"]
+serde = ["dep:serde", "ctw-core/serde"]
+
+[dependencies]
+ctw-core = { workspace = true }
+serde = { workspace = true, optional = true }
+
+[lints]
+workspace = true

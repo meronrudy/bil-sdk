@@ -1,0 +1,18 @@
+[package]
+name = "actuarial-governance"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "Rate filing artifacts, audit trails, cryptographic hashing"
+
+[dependencies]
+ctw-core = { workspace = true, features = ["std", "serde"] }
+actuarial-core = { workspace = true }
+actuarial-model = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+sha2 = { workspace = true }
+chrono = { workspace = true }
+
+[lints]
+workspace = true

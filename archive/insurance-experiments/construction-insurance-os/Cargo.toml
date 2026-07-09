@@ -1,0 +1,65 @@
+[workspace]
+resolver = "2"
+members = [
+    "crates/ctw-core",
+    "crates/ctw-geo",
+    "crates/ctw-machine",
+    "crates/ctw-ingest",
+    "crates/ctw-risk",
+    "crates/ctw-exposure",
+    "crates/ctw-context",
+    "crates/ctw-serde",
+    "crates/actuarial-core",
+    "crates/actuarial-model",
+    "crates/actuarial-pricing",
+    "crates/actuarial-reserving",
+    "crates/actuarial-explain",
+    "crates/actuarial-governance",
+    "crates/engine",
+    "crates/cios-sim",
+]
+
+[workspace.package]
+edition = "2021"
+license = "Apache-2.0"
+version = "0.1.0"
+authors = ["Construction Insurance OS Contributors"]
+repository = "https://github.com/your-org/construction-insurance-os"
+
+[workspace.dependencies]
+# Internal crates
+ctw-core = { path = "crates/ctw-core" }
+ctw-geo = { path = "crates/ctw-geo" }
+ctw-machine = { path = "crates/ctw-machine" }
+ctw-ingest = { path = "crates/ctw-ingest" }
+ctw-risk = { path = "crates/ctw-risk" }
+ctw-exposure = { path = "crates/ctw-exposure" }
+ctw-context = { path = "crates/ctw-context" }
+ctw-serde = { path = "crates/ctw-serde" }
+actuarial-core = { path = "crates/actuarial-core" }
+actuarial-model = { path = "crates/actuarial-model" }
+actuarial-pricing = { path = "crates/actuarial-pricing" }
+actuarial-reserving = { path = "crates/actuarial-reserving" }
+actuarial-explain = { path = "crates/actuarial-explain" }
+actuarial-governance = { path = "crates/actuarial-governance" }
+cios-sim = { path = "crates/cios-sim" }
+engine = { path = "crates/engine" }
+
+# External — pinned versions
+serde = { version = "1.0", default-features = false, features = ["derive"] }
+serde_json = "1.0"
+chrono = { version = "0.4", default-features = false, features = ["serde"] }
+uuid = { version = "1.0", features = ["v4", "serde"] }
+thiserror = "1.0"
+anyhow = "1.0"
+sha2 = "0.10"
+nalgebra = { version = "0.33", default-features = false, features = ["std"] }
+approx = "0.5"
+
+[workspace.lints.rust]
+unsafe_code = "forbid"
+
+[workspace.lints.clippy]
+all = "warn"
+pedantic = "warn"
+nursery = "warn"

@@ -3,7 +3,7 @@
 BIL is a Rust workspace for domain-neutral evidence commitments, INK receipts,
 and structural verification.
 
-The public repository is intentionally small:
+The root Cargo workspace is intentionally small; the repository is broader:
 
 - `bil-core`: shared ids, refs, status, and assurance primitives
 - `bil-mir`: the domain-neutral MIR graph and replay state shape
@@ -15,6 +15,13 @@ The public repository is intentionally small:
 - `bil-cli`: local developer commands over the public SDK
 - `bil-conformance`: public structural conformance checks
 
+Outside the workspace, this repository also carries:
+
+- `Insurance/AiSSURANCE`: the supported local downstream
+- `integrations/bil-aissurance-bridge`: the feature-gated mapping layer
+- `experiments/axiom-tui`: a live standalone experiment
+- `archive/insurance-experiments`: historical reference code
+
 The public proof path is:
 
 ```text
@@ -22,5 +29,6 @@ generic MIR graph -> canonical MIR commitment -> receipt preimage
 -> canonical receipt commitment -> software signature -> structural report
 ```
 
-Domain profiles, vendor adapters, hosted services, customer workflows, and
-commercial assurance packages live outside the public thin waist.
+The thin waist is the workspace boundary, not the full repository contents. For
+the repo-wide LOC breakdown and support tiers, see
+[repo-assessment.md](repo-assessment.md).

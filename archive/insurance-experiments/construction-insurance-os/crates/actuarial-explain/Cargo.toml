@@ -1,0 +1,13 @@
+[package]
+name = "actuarial-explain"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "Premium attribution, counterfactuals, explainability"
+
+[dependencies]
+actuarial-model = { workspace = true }
+serde = { workspace = true }
+
+[lints]
+workspace = true
