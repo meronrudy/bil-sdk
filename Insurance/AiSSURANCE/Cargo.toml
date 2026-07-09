@@ -1,0 +1,14 @@
+[workspace]
+resolver = "2"
+members = [
+    "contracts",
+    "actuarial",
+    "risk_layer",
+    "control_plane",
+    "synthetic",
+    "cli",
+    "safety_layer",
+    "vla_layer",
+    "shared",
+    "tests", "api_server", "python_bindings",
+]

@@ -1,0 +1,17 @@
+[package]
+name = "risk_layer"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+actuarial = { path = "../actuarial" }
+contracts = { path = "../contracts" }
+serde = { version = "1.0", features = ["derive"] }
+ndarray = "0.15"
+anyhow = "1.0"
+thiserror = "1.0"
+tracing = "0.1"
+
+[dev-dependencies]
+serde_json = "1.0"
+synthetic = { path = "../synthetic" }

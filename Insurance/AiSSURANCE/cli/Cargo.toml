@@ -1,0 +1,22 @@
+[package]
+name = "cli"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+name = "aissurance_cli"
+path = "src/lib.rs"
+
+[dependencies]
+clap = { version = "4.0", features = ["derive"] }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+tokio = { version = "1.0", features = ["full"] }
+anyhow = "1.0"
+control_plane = { path = "../control_plane" }
+contracts = { path = "../contracts" }
+risk_layer = { path = "../risk_layer" }
+safety_layer = { path = "../safety_layer" }
+synthetic = { path = "../synthetic" }
+shared = { path = "../shared" }
+vla_layer = { path = "../vla_layer" }

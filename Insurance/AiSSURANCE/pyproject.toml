@@ -1,0 +1,41 @@
+[build-system]
+requires = ["maturin>=1.0,<2.0"]
+build-backend = "maturin"
+
+[project]
+name = "aissurance"
+version = "0.1.0"
+description = "AiSSURANCE design-partner alpha workspace for mixed-autonomy fleet safety, VLA seams, control-plane orchestration, and risk intelligence."
+authors = [{name = "AiSSURANCE Team"}]
+dependencies = [
+    "numpy",
+    "pandas",
+    "scipy",
+    "torch",
+    "transformers",
+    "opencv-python",
+    "pydantic",
+    "protobuf",
+    "fastapi",
+    "uvicorn",
+    "pytest",
+    "jupyter",
+    "matplotlib",
+    "networkx",
+    "scikit-learn",
+    "statsmodels",
+]
+
+[project.optional-dependencies]
+dev = ["black", "isort", "flake8", "mypy"]
+test = ["pytest-cov", "pytest-asyncio"]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["control_plane*", "contracts*", "risk_layer*", "safety_layer*", "shared*", "synthetic*", "tests*", "vla_layer*"]
+
+[tool.black]
+line-length = 88
+
+[tool.isort]
+profile = "black"

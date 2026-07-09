@@ -1,0 +1,33 @@
+version: "3.8"
+
+services:
+  platform_alpha:
+    image: rust:1.81
+    working_dir: /workspace
+    volumes:
+      - .:/workspace
+    command: cargo run -p cli -- platform-demo --json --data-dir /workspace/.aissurance-alpha
+
+  api_server:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      - AISSURANCE_API_TOKEN=dev-token
+      - PORT=8080
+    volumes:
+      - ./.aissurance-alpha:/app/.aissurance-alpha
+
+  api_server:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      - PORT=8080
+      - AISSURANCE_API_TOKEN=dev-token
+    volumes:
+      - ./.aissurance-alpha:/app/.aissurance-alpha

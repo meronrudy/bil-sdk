@@ -4,6 +4,9 @@ use clap::{Parser, Subcommand};
 use std::fs;
 use std::path::Path;
 
+#[cfg(feature = "aissurance-local")]
+use bil_aissurance_bridge::{run_platform_demo_and_issue, AissurancePlatformDemoOptions};
+
 #[derive(Parser)]
 #[command(author, version, about, long_about = None)]
 struct Cli {
@@ -77,6 +80,28 @@ enum Commands {
     },
     /// Run conformance tests
     Conformance { group: String },
+    #[cfg(feature = "aissurance-local")]
+    /// Run local AiSSURANCE integration flows
+    Aissurance {
+        #[command(subcommand)]
+        command: AissuranceCommands,
+    },
+}
+
+#[cfg(feature = "aissurance-local")]
+#[derive(Subcommand)]
+enum AissuranceCommands {
+    /// Run the AiSSURANCE full platform demo and issue BIL receipts
+    PlatformDemo {
+        #[arg(long)]
+        config: Option<String>,
+        #[arg(long, default_value = ".aissurance-alpha")]
+        data_dir: String,
+        #[arg(long, default_value = "artifacts/aissurance")]
+        out_dir: String,
+        #[arg(long)]
+        json: bool,
+    },
 }
 
 fn main() -> Result<()> {
@@ -214,6 +239,38 @@ fn main() -> Result<()> {
         Commands::Conformance { group } => {
             bil_conformance::run_conformance_group(group).map_err(|e| anyhow!(e))?;
         }
+        #[cfg(feature = "aissurance-local")]
+        Commands::Aissurance { command } => match command {
+            AissuranceCommands::PlatformDemo {
+                config,
+                data_dir,
+                out_dir,
+                json,
+            } => {
+                let manifest = run_platform_demo_and_issue(AissurancePlatformDemoOptions {
+                    config_path: config.as_ref().map(Into::into),
+                    data_dir: data_dir.into(),
+                    out_dir: out_dir.into(),
+                })?;
+
+                if *json {
+                    println!(
+                        "{}",
+                        serde_json::to_string_pretty(&manifest)
+                            .context("failed to encode AiSSURANCE manifest JSON")?
+                    );
+                } else {
+                    println!("AiSSURANCE local platform demo completed.");
+                    println!("  Run ID: {}", manifest.run_id);
+                    println!("  Job ID: {}", manifest.job_id);
+                    println!("  Planner receipt: {}", manifest.planner_receipt.receipt_id);
+                    println!("  Safety receipt: {}", manifest.safety_receipt.receipt_id);
+                    println!("  Risk receipt: {}", manifest.risk_receipt.receipt_id);
+                    println!("  Aggregate receipt: {}", manifest.run_receipt.receipt_id);
+                    println!("  Manifest: {}", manifest.manifest_path.display());
+                }
+            }
+        },
     }
 
     Ok(())

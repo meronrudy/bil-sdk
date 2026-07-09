@@ -10,6 +10,7 @@ members = [
     "crates/bil-sdk",
     "crates/bil-cli"
 ]
+exclude = ["integrations/bil-aissurance-bridge"]
 resolver = "2"
 
 [workspace.package]

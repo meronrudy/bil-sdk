@@ -1,0 +1,18 @@
+[package]
+name = "python_bindings"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+name = "aissurance"
+crate-type = ["cdylib"]
+
+[dependencies]
+pyo3 = { version = "0.21", features = ["extension-module", "abi3-py38"] }
+actuarial = { path = "../actuarial" }
+control_plane = { path = "../control_plane" }
+risk_layer = { path = "../risk_layer" }
+contracts = { path = "../contracts" }
+shared = { path = "../shared" }
+serde_json = "1.0"
+tokio = { version = "1.0", features = ["full"] }

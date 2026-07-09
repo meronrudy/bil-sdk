@@ -1,0 +1,36 @@
+name: AiSSURANCE Local
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  aissurance-local:
+    if: ${{ hashFiles('Insurance/AiSSURANCE/Cargo.toml') != '' }}
+    runs-on: ubuntu-latest
+    env:
+      PYO3_PYTHON: python3
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - uses: Swatinem/rust-cache@v2
+
+      - name: Root default tests
+        run: cargo test
+
+      - name: AiSSURANCE workspace tests
+        working-directory: Insurance/AiSSURANCE
+        run: cargo test --workspace
+
+      - name: Bridge crate tests
+        run: cargo test --manifest-path integrations/bil-aissurance-bridge/Cargo.toml
+
+      - name: bil-cli local feature tests
+        run: cargo test -p bil-cli --features aissurance-local

@@ -1,0 +1,30 @@
+[package]
+name = "bil-aissurance-bridge"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[dependencies]
+anyhow = "1.0"
+hex = "0.4"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+
+bil-canonical = { path = "../../crates/bil-canonical" }
+bil-core = { path = "../../crates/bil-core" }
+bil-ink = { path = "../../crates/bil-ink" }
+bil-mir = { path = "../../crates/bil-mir" }
+bil-sdk = { path = "../../crates/bil-sdk" }
+bil-verify = { path = "../../crates/bil-verify" }
+
+aissurance_cli = { package = "cli", path = "../../Insurance/AiSSURANCE/cli" }
+aissurance_control_plane = { package = "control_plane", path = "../../Insurance/AiSSURANCE/control_plane" }
+aissurance_risk_layer = { package = "risk_layer", path = "../../Insurance/AiSSURANCE/risk_layer" }
+aissurance_safety_layer = { package = "safety_layer", path = "../../Insurance/AiSSURANCE/safety_layer" }
+aissurance_synthetic = { package = "synthetic", path = "../../Insurance/AiSSURANCE/synthetic" }
+aissurance_vla_layer = { package = "vla_layer", path = "../../Insurance/AiSSURANCE/vla_layer" }
+aissurance_shared = { package = "shared", path = "../../Insurance/AiSSURANCE/shared" }
+aissurance_contracts = { package = "contracts", path = "../../Insurance/AiSSURANCE/contracts" }
+
+[dev-dependencies]
+tempfile = "3.12"
